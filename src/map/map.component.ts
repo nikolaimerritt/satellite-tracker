@@ -16,8 +16,8 @@ export class MapComponent {
     @Input() satellites!: Satellite[];
 
     protected readonly dimensions = { 
-        width: 1024, 
-        height: 1024,
+        width: 2058, 
+        height: 2058,
     };
 
     protected ngOnInit() {

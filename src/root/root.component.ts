@@ -39,6 +39,9 @@ export class RootComponent {
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
     private ngOnInit() {
-        setTimeout(() => this.satelliteFetcher.satellites().subscribe((satellites) => this.satellites = satellites), 5000)
+        this.satelliteFetcher.satellites().subscribe((satellites) => {
+            this.satellites = satellites;
+            console.log("root: received satellites", satellites);
+        })
     }
 }
