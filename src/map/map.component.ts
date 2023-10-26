@@ -20,12 +20,6 @@ export class MapComponent {
         height: 2058,
     };
 
-    protected ngOnInit() {
-        for (const location of [{ latitude: 89, longitude: -180 }, { latitude: -89, longitude: 180 }]) {
-            console.log("Location to screen pos", location, this.locationToScreenPosition(location));
-        }
-    }
-
     protected locationToScreenPosition(location: Location): ScreenPos {
         const x = (location.longitude + 180) * this.dimensions.width / 360;
         const latitudeRadians = location.latitude * Math.PI / 180;

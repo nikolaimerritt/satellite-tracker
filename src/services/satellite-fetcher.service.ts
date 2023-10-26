@@ -36,7 +36,6 @@ export class SatelliteFetcherService {
     ]
 
     public satellites(): Observable<Satellite[]> {
-        console.log("Fetching satellites");
         const date = new Date();
         const satelliteObservables = this.satelliteIds.map((satelliteId) => 
             this.httpClient
@@ -57,7 +56,6 @@ export class SatelliteFetcherService {
             return undefined;
 
         const geodesicPosition = eciToGeodetic(eciData.position, gstime(date));
-        console.log("Converted two line element to position", geodesicPosition);
         return {
             latitude: degreesLat(geodesicPosition.latitude),
             longitude: degreesLong(geodesicPosition.longitude),

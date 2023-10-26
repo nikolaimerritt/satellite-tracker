@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Subscription, interval, map } from 'rxjs';
 import { Satellite } from 'src/map/satellite';
 import { SatelliteFetcherService } from 'src/services/satellite-fetcher.service';
 
@@ -8,40 +9,26 @@ import { SatelliteFetcherService } from 'src/services/satellite-fetcher.service'
     styleUrls: ['./root.component.scss']
 })
 export class RootComponent {
-    title = 'satellite-tracker';
-
     protected satellites: Satellite[] = [];
 
-    // protected readonly satellites: Satellite[] = [
-    //     { 
-    //         name: "Tower of London",
-    //         location: { 
-    //             latitude:  51.5,
-    //             longitude: -0.08,
-    //         },
-    //     },
-    //     {
-    //         name: "Chad",
-    //         location: {
-    //             latitude: 14.8,
-    //             longitude: 18.7,
-    //         },
-    //     },
-    //     {
-    //         name: "Sri Lanka",
-    //         location: {
-    //             latitude: 6.932515443044662, 
-    //             longitude: 80.83209679317419,
-    //         }
-    //     }
-    // ]
+    private readonly subscriptions: Subscription[] = [];
+    private readonly satelliteUpdateInterval = 6_000;
+    private readonly inervals: number[] = [];
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
     private ngOnInit() {
+        this.updateSatellites();
+        this.subscriptions.push(interval(this.satelliteUpdateInterval).subscribe(() => this.updateSatellites()));
+    }
+
+    private updateSatellites() {
         this.satelliteFetcher.satellites().subscribe((satellites) => {
             this.satellites = satellites;
-            console.log("root: received satellites", satellites);
-        })
+        });
+    }
+
+    private ngOnDestroy() {
+        for (const subscription of this.subscriptions) subscription.unsubscribe();
     }
 }
