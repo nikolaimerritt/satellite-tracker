@@ -16,17 +16,21 @@ export class MapComponent {
     @Input() satellites!: Satellite[];
 
     protected readonly dimensions = { 
-        width: 300, 
-        height: 400
+        width: 1024, 
+        height: 1024,
     };
 
+    protected ngOnInit() {
+        for (const location of [{ latitude: 89, longitude: -180 }, { latitude: -89, longitude: 180 }]) {
+            console.log("Location to screen pos", location, this.locationToScreenPosition(location));
+        }
+    }
+
     protected locationToScreenPosition(location: Location): ScreenPos {
-        const normalisedX = location.longitude;
-        const latitudeRads = location.latitude * Math.PI / 180;
-        const normalisedY = Math.log(Math.tan(Math.PI / 4 + latitudeRads / 2));
-        return { 
-            x: normalisedX * this.dimensions.width, 
-            y: normalisedY * this.dimensions.height,
-        };
+        const x = (location.longitude + 180) * this.dimensions.width / 360;
+        const latitudeRadians = location.latitude * Math.PI / 180;
+        const mercatorFactor = Math.log(Math.tan(Math.PI / 4 + latitudeRadians / 2));
+        const y = this.dimensions.height / 2 - this.dimensions.width * mercatorFactor / (2 * Math.PI);
+        return { x, y };
     }
 }

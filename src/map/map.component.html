@@ -1,5 +1,10 @@
 <p>map works!</p>
-
-<div *ngFor="let satellite of this.satellites">
-    <img src="../assets/satellite.png">
+<div [ngStyle]="{'width': this.dimensions.width + 'px', 'height': this.dimensions.height + 'px'}" class="map-background">
+    <div *ngFor="let satellite of this.satellites">
+        <img src="../assets/satellite.png" class="satellite" [ngStyle]="{
+            'left': this.locationToScreenPosition(satellite.location).x - 25 + 'px', 
+            'top': this.locationToScreenPosition(satellite.location).y - 25 + 'px',
+        }">
+    </div>
 </div>
+
