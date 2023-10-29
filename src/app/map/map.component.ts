@@ -1,8 +1,7 @@
 import { Component, Input } from '@angular/core';
-import { Satellite } from './satellite';
-import { Location } from './satellite';
+import { Satellite, GeographicCoords as GeographicCoords } from '../satellite-fetcher.service';
 
-interface ScreenPos {
+interface ScreenCoords {
     x: number,
     y: number,
 }
@@ -20,9 +19,9 @@ export class MapComponent {
         height: 2058,
     };
 
-    protected locationToScreenPosition(location: Location): ScreenPos {
-        const x = (location.longitude + 180) * this.dimensions.width / 360;
-        const latitudeRadians = location.latitude * Math.PI / 180;
+    protected toScreenCoords(coords: GeographicCoords): ScreenCoords {
+        const x = (coords.longitude + 180) * this.dimensions.width / 360;
+        const latitudeRadians = coords.latitude * Math.PI / 180;
         const mercatorFactor = Math.log(Math.tan(Math.PI / 4 + latitudeRadians / 2));
         const y = this.dimensions.height / 2 - this.dimensions.width * mercatorFactor / (2 * Math.PI);
         return { x, y };

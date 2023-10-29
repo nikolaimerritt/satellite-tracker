@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Subscription, interval, map } from 'rxjs';
-import { Satellite } from 'src/app/map/satellite';
-import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
+import { SatelliteFetcherService, Satellite } from 'src/app/satellite-fetcher.service';
 
 @Component({
     selector: 'root',

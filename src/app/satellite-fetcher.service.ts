@@ -1,16 +1,23 @@
 import { Injectable } from '@angular/core';
-import { Satellite } from './map/satellite';
 import { HttpClient } from "@angular/common/http";
 import { Observable, map, forkJoin, filter, mergeMap, EMPTY, of } from 'rxjs';
-import { Location } from './map/satellite';
 import { twoline2satrec, eciToGeodetic, propagate, gstime, degreesLong, degreesLat } from "satellite.js"
+
+export interface Satellite {
+    name: string,
+    id: number,
+    geographicCoords: GeographicCoords,
+}
+
+export interface GeographicCoords {
+    latitude: number,
+    longitude: number,
+}
 
 interface SatelliteId {
     name: string,
     id: number,
 }
-
-type SatelliteResponse = { name: string } & TwoLineElement;
 
 interface TwoLineElement {
     line1: string,
@@ -29,37 +36,45 @@ export class SatelliteFetcherService {
             name: "ISS (ZARYA)",
             id: 25544
         },
-        // {
-        //     name: "CENTAURI-1",
-        //     id: 43809,
-        // },
+        {
+            name: "CENTAURI-1",
+            id: 43809,
+        },
     ]
 
     public satellites(): Observable<Satellite[]> {
+        type Response  = {
+            name: string,
+            satelliteId: number,
+        } & TwoLineElement
+
         const date = new Date();
         const satelliteObservables = this.satelliteIds.map((satelliteId) => 
             this.httpClient
-            .get<SatelliteResponse>(`${this.baseApiUrl}/${satelliteId.id}`)
-            .pipe(mergeMap((response: SatelliteResponse) => {
-                const location = this.twoLineElementToLatLong(response, date);
-                if (location === undefined) return EMPTY;
+            .get<Response>(`${this.baseApiUrl}/${satelliteId.id}`)
+            .pipe(mergeMap((response: Response) => {
+                const geographicCoords = this.geographicCoordsAtTime(response, date);
+                if (geographicCoords === undefined) return EMPTY;
 
-                return of({ name: response.name, location });
+                return of({ 
+                    name: response.name,  
+                    id: response.satelliteId,
+                    geographicCoords,
+                });
             }))
         )
         return forkJoin(satelliteObservables)
     }
 
-    protected twoLineElementToLatLong(twoLineElement: TwoLineElement, date: Date): Location | undefined {
+    protected geographicCoordsAtTime(twoLineElement: TwoLineElement, date: Date): GeographicCoords | undefined {
         const eciData = propagate(twoline2satrec(twoLineElement.line1, twoLineElement.line2), date);
-        console.log("hello, its this high", eciData);
         if (typeof eciData.position === "boolean")
             return undefined;
 
-        const geodesicPosition = eciToGeodetic(eciData.position, gstime(date));
+        const geodeticCoords = eciToGeodetic(eciData.position, gstime(date));
         return {
-            latitude: degreesLat(geodesicPosition.latitude),
-            longitude: degreesLong(geodesicPosition.longitude),
+            latitude: degreesLat(geodeticCoords.latitude),
+            longitude: degreesLong(geodeticCoords.longitude),
         };
     }
 }
