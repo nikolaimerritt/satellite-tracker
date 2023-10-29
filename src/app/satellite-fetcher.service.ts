@@ -1,75 +1,101 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from "@angular/common/http";
-import { Observable, map, forkJoin, filter, mergeMap, EMPTY, of } from 'rxjs';
-import { twoline2satrec, eciToGeodetic, propagate, gstime, degreesLong, degreesLat } from "satellite.js"
+import { HttpClient } from '@angular/common/http';
+import { Observable, map, forkJoin, mergeMap, EMPTY, of } from 'rxjs';
+import {
+    twoline2satrec,
+    eciToGeodetic,
+    propagate,
+    gstime,
+    degreesLong,
+    degreesLat,
+} from 'satellite.js';
 
 export interface Satellite {
-    name: string,
-    id: number,
-    geographicCoords: GeographicCoords,
+    name: string;
+    coords: GeographicCoords;
 }
 
 export interface GeographicCoords {
-    latitude: number,
-    longitude: number,
+    latitude: number;
+    longitude: number;
 }
 
-interface SatelliteId {
-    name: string,
-    id: number,
+interface SatelliteStatus {
+    name: string;
+    trajectory: TwoLineElement;
 }
 
 interface TwoLineElement {
-    line1: string,
-    line2: string,
+    line1: string;
+    line2: string;
 }
 
 @Injectable({
-    providedIn: 'root'
+    providedIn: 'root',
 })
 export class SatelliteFetcherService {
-    constructor(private httpClient: HttpClient) { }
+    constructor(private httpClient: HttpClient) {}
 
-    private readonly baseApiUrl = "https://tle.ivanstanojevic.me/api/tle";
-    private readonly satelliteIds: SatelliteId[] = [
-        { 
-            name: "ISS (ZARYA)",
-            id: 25544
-        },
-        {
-            name: "CENTAURI-1",
-            id: 43809,
-        },
-    ]
+    private readonly baseApiUrl = 'https://tle.ivanstanojevic.me/api/tle';
+    private readonly satteliteIDs = [40075, 43696] as const;
+
+    private readonly idToStatus: { [key: number]: SatelliteStatus } = {};
 
     public satellites(): Observable<Satellite[]> {
-        type Response  = {
-            name: string,
-            satelliteId: number,
-        } & TwoLineElement
-
-        const date = new Date();
-        const satelliteObservables = this.satelliteIds.map((satelliteId) => 
-            this.httpClient
-            .get<Response>(`${this.baseApiUrl}/${satelliteId.id}`)
-            .pipe(mergeMap((response: Response) => {
-                const geographicCoords = this.geographicCoordsAtTime(response, date);
-                if (geographicCoords === undefined) return EMPTY;
-
-                return of({ 
-                    name: response.name,  
-                    id: response.satelliteId,
-                    geographicCoords,
-                });
-            }))
-        )
-        return forkJoin(satelliteObservables)
+        const now = new Date();
+        const satelliteObservables = this.satteliteIDs.map((id) =>
+            this.getStatus(id).pipe(
+                mergeMap((status: SatelliteStatus) => {
+                    const coords = this.geographicCoordsAtTime(
+                        status.trajectory,
+                        now,
+                    );
+                    if (coords === undefined) return EMPTY;
+                    return of({
+                        name: status.name,
+                        coords,
+                    });
+                }),
+            ),
+        );
+        return forkJoin(satelliteObservables);
     }
 
-    protected geographicCoordsAtTime(twoLineElement: TwoLineElement, date: Date): GeographicCoords | undefined {
-        const eciData = propagate(twoline2satrec(twoLineElement.line1, twoLineElement.line2), date);
-        if (typeof eciData.position === "boolean")
-            return undefined;
+    private getStatus(satelliteId: number): Observable<SatelliteStatus> {
+        type StatusAPIResponse = {
+            name: string;
+            satelliteId: number;
+        } & TwoLineElement;
+
+        if (satelliteId in this.idToStatus)
+            return of(this.idToStatus[satelliteId]);
+
+        return this.httpClient
+            .get<StatusAPIResponse>(`${this.baseApiUrl}/${satelliteId}`)
+            .pipe(
+                map((response: StatusAPIResponse) => {
+                    const status = {
+                        name: response.name,
+                        trajectory: {
+                            line1: response.line1,
+                            line2: response.line2,
+                        },
+                    };
+                    this.idToStatus[satelliteId] = status;
+                    return status;
+                }),
+            );
+    }
+
+    protected geographicCoordsAtTime(
+        trajectory: TwoLineElement,
+        date: Date,
+    ): GeographicCoords | undefined {
+        const eciData = propagate(
+            twoline2satrec(trajectory.line1, trajectory.line2),
+            date,
+        );
+        if (typeof eciData.position === 'boolean') return undefined;
 
         const geodeticCoords = eciToGeodetic(eciData.position, gstime(date));
         return {

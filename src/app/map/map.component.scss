@@ -1,9 +1,12 @@
 .map-background {
     background-image: url("../../assets/mercator.jpg");
+    background-size: contain;
+    background-repeat: no-repeat;
+    height: 100vh;
     position: relative;
 }
 
-satellite {
-    width: 50px;
-    position: absolute; 
+satellite-sprite {
+    position: absolute;
+    transform: translate(-50%, -50%);
 }
