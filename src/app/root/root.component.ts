@@ -13,7 +13,7 @@ export class RootComponent {
     protected satellites: Satellite[] = [];
 
     private readonly subscriptions: Subscription[] = [];
-    private readonly satelliteUpdateInterval = 1000;
+    private readonly satelliteUpdateInterval = 1000 * 1000;
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
@@ -24,12 +24,23 @@ export class RootComponent {
                 this.updateSatellites(),
             ),
         );
+
+        this.satelliteFetcher
+            .closestSatelliteInterception(
+                { latitude: 51.507, longitude: -0.0641 },
+                new Date(),
+            )
+            .subscribe((satellite) => {
+                console.log('satellite overhead', satellite);
+            });
     }
 
     private updateSatellites() {
-        this.subscriptions.push(this.satelliteFetcher.satellites().subscribe((satellites) => {
-            this.satellites = satellites;
-        }));
+        this.subscriptions.push(
+            this.satelliteFetcher.satellites().subscribe((satellites) => {
+                this.satellites = satellites;
+            }),
+        );
     }
 
     private ngOnDestroy() {

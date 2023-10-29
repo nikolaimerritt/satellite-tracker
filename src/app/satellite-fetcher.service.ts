@@ -13,6 +13,7 @@ import {
 export interface Satellite {
     name: string;
     coords: GeographicCoords;
+    time: Date;
 }
 
 export interface GeographicCoords {
@@ -54,6 +55,7 @@ export class SatelliteFetcherService {
                     return of({
                         name: status.name,
                         coords,
+                        time: now,
                     });
                 }),
             ),
@@ -87,7 +89,7 @@ export class SatelliteFetcherService {
             );
     }
 
-    protected geographicCoordsAtTime(
+    private geographicCoordsAtTime(
         trajectory: TwoLineElement,
         date: Date,
     ): GeographicCoords | undefined {
@@ -101,6 +103,93 @@ export class SatelliteFetcherService {
         return {
             latitude: degreesLat(geodeticCoords.latitude),
             longitude: degreesLong(geodeticCoords.longitude),
+        };
+    }
+
+    public closestSatelliteInterception(
+        observer: GeographicCoords,
+        startTime: Date,
+        timeStepMs: number = 50_000,
+        maxTimeSteps: number = 1000,
+    ): Observable<Satellite[]> {
+        const times = [...Array(maxTimeSteps).keys()].map(
+            (i) => new Date(startTime.getTime() + i * timeStepMs),
+        );
+
+        return forkJoin(
+            this.satteliteIDs.map((id: number) =>
+                this.getStatus(id).pipe(
+                    mergeMap((status: SatelliteStatus) => {
+                        let closestTime: Date | undefined = undefined;
+                        let closestCoords: GeographicCoords | undefined =
+                            undefined;
+
+                        for (const time of times) {
+                            const coords = this.geographicCoordsAtTime(
+                                status.trajectory,
+                                time,
+                            );
+                            if (
+                                coords !== undefined &&
+                                (closestCoords === undefined ||
+                                    this.distance(observer, coords) <
+                                        this.distance(observer, closestCoords))
+                            ) {
+                                closestTime = time;
+                                closestCoords = coords;
+                            }
+                        }
+
+                        if (
+                            closestCoords === undefined ||
+                            closestTime === undefined
+                        )
+                            return EMPTY;
+                        return of({
+                            name: status.name,
+                            coords: closestCoords,
+                            time: closestTime,
+                        });
+                    }),
+                ),
+            ),
+        );
+    }
+
+    private distance(
+        pointA: GeographicCoords,
+        pointB: GeographicCoords,
+    ): number {
+        const pointARads = this.coordsInRads(pointA);
+        const pointBRads = this.coordsInRads(pointB);
+
+        const sineSquareLatitudeDifference = Math.pow(
+            Math.sin((pointARads.latitude - pointBRads.latitude) / 2),
+            2,
+        );
+        const sineSquareLongitudeDifference = Math.pow(
+            Math.sin((pointARads.longitude - pointBRads.longitude) / 2),
+            2,
+        );
+
+        return (
+            2 *
+            Math.asin(
+                Math.sqrt(
+                    sineSquareLatitudeDifference +
+                        Math.cos(pointARads.latitude) *
+                            Math.cos(pointBRads.latitude) *
+                            sineSquareLongitudeDifference,
+                ),
+            )
+        );
+    }
+
+    private coordsInRads(coords: GeographicCoords): GeographicCoords {
+        const scaleFactor = Math.PI / 180;
+        return {
+            latitude: coords.latitude * scaleFactor,
+            longitude: coords.longitude * scaleFactor,
         };
     }
 }

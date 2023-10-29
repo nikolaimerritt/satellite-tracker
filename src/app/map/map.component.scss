@@ -1,5 +1,7 @@
 :host {
-    position: relative;    
+    position: relative;
+    display: flex;
+    width: min-content;
 }
 
 satellite-sprite {

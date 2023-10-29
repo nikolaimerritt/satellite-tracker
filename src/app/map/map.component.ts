@@ -1,17 +1,8 @@
-import { Component, Input, ElementRef, ViewChildren, QueryList } from '@angular/core';
+import { Component, Input, ElementRef } from '@angular/core';
 import {
     Satellite,
     GeographicCoords as GeographicCoords,
 } from '../satellite-fetcher.service';
-import {
-    trigger,
-    state,
-    style,
-    animate,
-    transition,
-    animation,
-} from '@angular/animations';
-import { SatelliteSpriteComponent } from '../satellite-sprite/satellite-sprite.component';
 
 interface ScreenCoords {
     x: number;
@@ -22,17 +13,6 @@ interface ScreenCoords {
     selector: 'map',
     templateUrl: './map.component.html',
     styleUrls: ['./map.component.scss'],
-    // animations: [
-    //     trigger("moveAnimation", [
-    //         state("default",  style({})),
-    //         state("moved", style({
-    //             left: "{{x}}",
-    //             top: "{{y}}",
-    //         }), { params: { x: 0, y: 0 } }),
-    //         transition("default => moved", [animate("3s")]),
-    //         transition("moved=>default", [animate("0.1s")])
-    //     ])
-    // ]
 })
 export class MapComponent {
     constructor(private element: ElementRef) {}
