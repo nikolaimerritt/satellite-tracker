@@ -13,7 +13,7 @@ export class RootComponent {
     protected satellites: Satellite[] = [];
 
     private readonly subscriptions: Subscription[] = [];
-    private readonly satelliteUpdateInterval = 3_000 * 1000;
+    private readonly satelliteUpdateInterval = 1000;
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
@@ -27,9 +27,9 @@ export class RootComponent {
     }
 
     private updateSatellites() {
-        this.satelliteFetcher.satellites().subscribe((satellites) => {
+        this.subscriptions.push(this.satelliteFetcher.satellites().subscribe((satellites) => {
             this.satellites = satellites;
-        });
+        }));
     }
 
     private ngOnDestroy() {

@@ -1,4 +1,4 @@
-import { Component, Input, ElementRef } from '@angular/core';
+import { Component, Input, ElementRef, ViewChildren, QueryList } from '@angular/core';
 import {
     Satellite,
     GeographicCoords as GeographicCoords,
@@ -11,6 +11,7 @@ import {
     transition,
     animation,
 } from '@angular/animations';
+import { SatelliteSpriteComponent } from '../satellite-sprite/satellite-sprite.component';
 
 interface ScreenCoords {
     x: number;
@@ -38,11 +39,6 @@ export class MapComponent {
 
     @Input() satellites!: Satellite[];
 
-    // protected readonly dimensions = {
-    //     width: 2058,
-    //     height: 2058,
-    // };
-
     protected toScreenCoords(coords: GeographicCoords): ScreenCoords {
         const mapWidth = this.element.nativeElement.offsetWidth;
         const mapHeight = this.element.nativeElement.offsetHeight;
@@ -53,7 +49,6 @@ export class MapComponent {
             Math.tan(Math.PI / 4 + latitudeRadians / 2),
         );
         const y = mapHeight / 2 - (mapWidth * mercatorFactor) / (2 * Math.PI);
-        // return { x, y };
-        return { x: 0.5 * mapWidth, y: 0.5 * mapHeight };
+        return { x, y };
     }
 }
