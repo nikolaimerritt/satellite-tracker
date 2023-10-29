@@ -4,15 +4,13 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RootComponent } from './app/root/root.component';
 import { MapComponent } from './app/map/map.component';
 import { HttpClientModule } from '@angular/common/http';
-import { SatelliteComponent } from './app/satellite/satellite.component';
-import { FooComponent } from './app/foo/foo.component';
+import { SatelliteSpriteComponent } from './app/satellite-sprite/satellite-sprite.component';
 
 @NgModule({
   declarations: [
     RootComponent,
     MapComponent,
-    SatelliteComponent,
-    FooComponent,
+    SatelliteSpriteComponent,
   ],
   imports: [
     BrowserModule,

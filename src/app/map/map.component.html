@@ -1,8 +1,10 @@
 <div [ngStyle]="{'width': this.dimensions.width + 'px', 'height': this.dimensions.height + 'px'}" class="map-background">
     <div *ngFor="let satellite of this.satellites">
-        <img src="../../assets/satellite.png" class="satellite" [ngStyle]="{
-            'left': this.toScreenCoords(satellite.geographicCoords).x - 25 + 'px',
-            'top': this.toScreenCoords(satellite.geographicCoords).y - 25 + 'px',
-        }">
+        <satellite-sprite
+        [satellite]="satellite"
+        [ngStyle]="{
+            'left': this.toScreenCoords(satellite.geographicCoords).x + 'px', 
+            'top': this.toScreenCoords(satellite.geographicCoords).y + 'px',
+        }"></satellite-sprite>
     </div>
 </div>

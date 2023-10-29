@@ -11,7 +11,7 @@ export class RootComponent {
     protected satellites: Satellite[] = [];
 
     private readonly subscriptions: Subscription[] = [];
-    private readonly satelliteUpdateInterval = 6_000;
+    private readonly satelliteUpdateInterval = 6_000 * 1000;
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
