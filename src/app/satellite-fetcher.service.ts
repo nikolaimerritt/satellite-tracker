@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { Satellite } from 'src/map/satellite';
+import { Satellite } from './map/satellite';
 import { HttpClient } from "@angular/common/http";
 import { Observable, map, forkJoin, filter, mergeMap, EMPTY, of } from 'rxjs';
-import { Location } from 'src/map/satellite';
+import { Location } from './map/satellite';
 import { twoline2satrec, eciToGeodetic, propagate, gstime, degreesLong, degreesLat } from "satellite.js"
 
 interface SatelliteId {
@@ -29,10 +29,10 @@ export class SatelliteFetcherService {
             name: "ISS (ZARYA)",
             id: 25544
         },
-        {
-            name: "CENTAURI-1",
-            id: 43809,
-        },
+        // {
+        //     name: "CENTAURI-1",
+        //     id: 43809,
+        // },
     ]
 
     public satellites(): Observable<Satellite[]> {
@@ -52,6 +52,7 @@ export class SatelliteFetcherService {
 
     protected twoLineElementToLatLong(twoLineElement: TwoLineElement, date: Date): Location | undefined {
         const eciData = propagate(twoline2satrec(twoLineElement.line1, twoLineElement.line2), date);
+        console.log("hello, its this high", eciData);
         if (typeof eciData.position === "boolean")
             return undefined;
 

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Subscription, interval, map } from 'rxjs';
-import { Satellite } from 'src/map/satellite';
-import { SatelliteFetcherService } from 'src/services/satellite-fetcher.service';
+import { Satellite } from 'src/app/map/satellite';
+import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
 
 @Component({
     selector: 'root',
@@ -13,7 +13,6 @@ export class RootComponent {
 
     private readonly subscriptions: Subscription[] = [];
     private readonly satelliteUpdateInterval = 6_000;
-    private readonly inervals: number[] = [];
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
