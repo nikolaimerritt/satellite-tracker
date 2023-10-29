@@ -1,8 +1,9 @@
 .map-background {
     background-image: url("../../assets/mercator.jpg");
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
     height: 100vh;
+    width: auto;
     position: relative;
 }
 
