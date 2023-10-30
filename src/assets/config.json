@@ -11,6 +11,14 @@
         {
             "name": "Robusta 1B",
             "id": 42792
+        },
+        {
+            "name": "Navstar 63",
+            "id": 34661
+        },
+        {
+            "name": "Neudose",
+            "id": 56315 
         }
     ]
 }

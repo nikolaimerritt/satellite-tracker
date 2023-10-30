@@ -35,7 +35,7 @@ export class RootComponent {
 
     private updateSatellites() {
         this.subscriptions.push(
-            this.satelliteFetcher.satellitesNow().subscribe((satellites) => {
+            this.satelliteFetcher.observationsAtTime().subscribe((satellites) => {
                 this.satellites = satellites;
             }),
         );

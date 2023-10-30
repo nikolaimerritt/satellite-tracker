@@ -33,25 +33,19 @@ export class SatelliteFetcherService {
     ) {}
 
     private readonly baseApiUrl = 'https://tle.ivanstanojevic.me/api/tle';
-    private readonly idToTrajectory: { [key: number]: Trajectory } = {};
+    private readonly idToTrajectory: { [id: number]: Trajectory } = {};
 
-    public satellitesNow(): Observable<SatelliteObservation[]> {
-        const now = new Date();
+    public observationsAtTime(time = new Date()): Observable<SatelliteObservation[]> {
         const observations = this.config.satellites.map((satellite) =>
             this.fetchTrajectory(satellite.id).pipe(
-                mergeMap((trajectory: Trajectory) => {
-                    const coords = this.geographicCoordsAtTime(trajectory, now);
-                    console.log(
-                        'satellitesNow(): coords for trajectory',
-                        trajectory,
-                        coords,
-                    );
-                    if (coords === undefined) return of(undefined);
-                    return of({
+                map((trajectory: Trajectory) => {
+                    const coords = this.geographicCoordsAtTime(trajectory, time);
+                    if (coords === undefined) return undefined;
+                    return {
                         name: satellite.name,
                         coords,
-                        time: now,
-                    });
+                        time: time,
+                    };
                 }),
             ),
         );
@@ -59,7 +53,7 @@ export class SatelliteFetcherService {
             map(
                 (observations) =>
                     observations.filter(
-                        (o) => o !== undefined,
+                        (observation) => observation !== undefined,
                     ) as SatelliteObservation[],
             ),
         );
@@ -77,7 +71,7 @@ export class SatelliteFetcherService {
 
         const closestObservations = this.config.satellites.map((satellite) =>
             this.fetchTrajectory(satellite.id).pipe(
-                mergeMap((trajectory: Trajectory) => {
+                map((trajectory: Trajectory) => {
                     let closestTime: Date | undefined = undefined;
                     let closestCoords: GeographicCoords | undefined = undefined;
 
@@ -101,12 +95,12 @@ export class SatelliteFetcherService {
                         closestCoords === undefined ||
                         closestTime === undefined
                     )
-                        return of(undefined);
-                    return of({
+                        return undefined;
+                    return {
                         name: satellite.name,
                         coords: closestCoords,
                         time: closestTime,
-                    });
+                    };
                 }),
             ),
         );

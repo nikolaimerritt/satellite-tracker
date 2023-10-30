@@ -1,10 +1,8 @@
 <div *ngFor="let satellite of this.satellites">
     <satellite-sprite
         [name]="this.satellite.name"
-        [ngStyle]="{
-            left: this.toScreenCoords(satellite.coords).x + 'px',
-            top: this.toScreenCoords(satellite.coords).y + 'px'
-        }"
+        (elementEv)="this.animateLoop($event)"
     ></satellite-sprite>
 </div>
 <img src="assets/mercator.jpg" style="height: 100vh" />
+<img src="assets/satellite.png" style="position: absolute; width: 50px" #image>
