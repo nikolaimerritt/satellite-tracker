@@ -12,6 +12,12 @@ import {
 } from 'satellite.js';
 import { ConfigService } from './config.service';
 
+export interface Satellite {
+    name: string;
+    id: number;
+    path: (time: Date) => GeographicCoords | undefined;
+}
+
 export interface SatelliteObservation {
     name: string;
     coords: GeographicCoords;
@@ -35,11 +41,17 @@ export class SatelliteFetcherService {
     private readonly baseApiUrl = 'https://tle.ivanstanojevic.me/api/tle';
     private readonly idToTrajectory: { [id: number]: Trajectory } = {};
 
-    public observationsAtTime(time = new Date()): Observable<SatelliteObservation[]> {
+    public observationsAtTime(
+        // TO SELF: not needed any more
+        time = new Date(),
+    ): Observable<SatelliteObservation[]> {
         const observations = this.config.satellites.map((satellite) =>
             this.fetchTrajectory(satellite.id).pipe(
                 map((trajectory: Trajectory) => {
-                    const coords = this.geographicCoordsAtTime(trajectory, time);
+                    const coords = this.geographicCoordsAtTime(
+                        trajectory,
+                        time,
+                    );
                     if (coords === undefined) return undefined;
                     return {
                         name: satellite.name,
@@ -55,6 +67,21 @@ export class SatelliteFetcherService {
                     observations.filter(
                         (observation) => observation !== undefined,
                     ) as SatelliteObservation[],
+            ),
+        );
+    }
+
+    public satellites(): Observable<Satellite[]> {
+        return forkJoin(
+            this.config.satellites.map((config) =>
+                this.fetchTrajectory(config.id).pipe(
+                    map((trajectory: Trajectory) => ({
+                        name: config.name,
+                        id: config.id,
+                        path: (time: Date) =>
+                            this.geographicCoordsAtTime(trajectory, time),
+                    })),
+                ),
             ),
         );
     }
@@ -131,15 +158,15 @@ export class SatelliteFetcherService {
 
     private geographicCoordsAtTime(
         trajectory: Trajectory,
-        date: Date,
+        time: Date,
     ): GeographicCoords | undefined {
         const eciData = propagate(
             twoline2satrec(trajectory.line1, trajectory.line2),
-            date,
+            time,
         );
         if (typeof eciData.position === 'boolean') return undefined;
 
-        const geodeticCoords = eciToGeodetic(eciData.position, gstime(date));
+        const geodeticCoords = eciToGeodetic(eciData.position, gstime(time));
         return new GeographicCoords(
             degreesLat(geodeticCoords.latitude),
             degreesLong(geodeticCoords.longitude),

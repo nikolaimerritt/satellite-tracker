@@ -1,5 +1,5 @@
 import { Component, Input, ElementRef, ViewChild } from '@angular/core';
-import { SatelliteObservation } from '../satellite-fetcher.service';
+import { Satellite, SatelliteObservation } from '../satellite-fetcher.service';
 import { GeographicCoords } from '../utils/geographic-coords';
 
 interface ScreenCoords {
@@ -14,35 +14,26 @@ interface ScreenCoords {
 })
 export class MapComponent {
     constructor(private element: ElementRef) {}
-    @Input() satellites!: SatelliteObservation[];
+    @Input() satellites!: Satellite[];
 
-    public animateLoop(element: ElementRef) {
-        let startTimestamp: number | undefined = undefined;
-        const step = (timestamp: number) => {
-            if (startTimestamp === undefined) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / 1000, 1);
-            element.nativeElement.style.left = 100 + 100 * progress + 'px';
-            if (progress < 1) window.requestAnimationFrame(step);
-        }
-
-        window.requestAnimationFrame(step);
-    }
-
-    public animateSatellite(satellite: SatelliteObservation, element: ElementRef) {
-        let startTimestamp: number | undefined = undefined;
-        const step = (timestamp: number) => {
-            if (startTimestamp === undefined) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / 1000, 1);
-
-
-            element.nativeElement.style.left = 100 + 100 * progress + 'px';
-            if (progress < 1) window.requestAnimationFrame(step);
-        }
+    public animateSatellite(satellite: Satellite, element: ElementRef) {
+        const animationStart = new Date();
+        const step = (msSinceAnimationStart: number) => {
+            const geographicCoords = satellite.path(
+                new Date(animationStart.getTime() + msSinceAnimationStart),
+            );
+            if (geographicCoords) {
+                const screenCoords = this.toScreenCoords(geographicCoords);
+                element.nativeElement.style.left = screenCoords.x + 'px';
+                element.nativeElement.style.top = screenCoords.y + 'px';
+            }
+            window.requestAnimationFrame(step);
+        };
 
         window.requestAnimationFrame(step);
     }
 
-    protected toScreenCoords(coords: GeographicCoords): ScreenCoords {
+    private toScreenCoords(coords: GeographicCoords): ScreenCoords {
         const mapWidth = this.element.nativeElement.offsetWidth;
         const mapHeight = this.element.nativeElement.offsetHeight;
 

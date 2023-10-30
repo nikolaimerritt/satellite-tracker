@@ -1,5 +1,10 @@
-import { Component, Input, Output, ElementRef, HostBinding, EventEmitter } from '@angular/core';
-import { SatelliteObservation } from '../satellite-fetcher.service';
+import {
+    Component,
+    Input,
+    Output,
+    ElementRef,
+    EventEmitter,
+} from '@angular/core';
 
 @Component({
     selector: 'satellite-sprite',
@@ -8,13 +13,11 @@ import { SatelliteObservation } from '../satellite-fetcher.service';
 })
 export class SatelliteSpriteComponent {
     @Input() public name!: string;
+    @Output() public elementChange = new EventEmitter<ElementRef>();
 
-    @Output() public elementEv = new EventEmitter<ElementRef>();
-    
-    public constructor(private element: ElementRef) {}  
+    public constructor(private element: ElementRef) {}
 
     public ngAfterViewInit() {
-        console.log("satellite-sprite: emitting element", this.element);
-        this.elementEv.emit(this.element);
+        this.elementChange.emit(this.element);
     }
 }
