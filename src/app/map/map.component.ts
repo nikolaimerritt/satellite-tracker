@@ -1,8 +1,6 @@
 import { Component, Input, ElementRef } from '@angular/core';
-import {
-    Satellite,
-    GeographicCoords as GeographicCoords,
-} from '../satellite-fetcher.service';
+import { SatelliteObservation } from '../satellite-fetcher.service';
+import { GeographicCoords } from '../utils/geographic-coords';
 
 interface ScreenCoords {
     x: number;
@@ -17,7 +15,7 @@ interface ScreenCoords {
 export class MapComponent {
     constructor(private element: ElementRef) {}
 
-    @Input() satellites!: Satellite[];
+    @Input() satellites!: SatelliteObservation[];
 
     protected toScreenCoords(coords: GeographicCoords): ScreenCoords {
         const mapWidth = this.element.nativeElement.offsetWidth;

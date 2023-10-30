@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, forkJoin, mergeMap, EMPTY, of } from 'rxjs';
+import { GeographicCoords } from './utils/geographic-coords';
+import { Observable, map, forkJoin, mergeMap, EMPTY, of, filter } from 'rxjs';
 import {
     twoline2satrec,
     eciToGeodetic,
@@ -9,24 +10,15 @@ import {
     degreesLong,
     degreesLat,
 } from 'satellite.js';
+import { ConfigService } from './config.service';
 
-export interface Satellite {
+export interface SatelliteObservation {
     name: string;
     coords: GeographicCoords;
     time: Date;
 }
 
-export interface GeographicCoords {
-    latitude: number;
-    longitude: number;
-}
-
-interface SatelliteStatus {
-    name: string;
-    trajectory: TwoLineElement;
-}
-
-interface TwoLineElement {
+interface Trajectory {
     line1: string;
     line2: string;
 }
@@ -35,62 +27,116 @@ interface TwoLineElement {
     providedIn: 'root',
 })
 export class SatelliteFetcherService {
-    constructor(private httpClient: HttpClient) {}
+    constructor(
+        private httpClient: HttpClient,
+        private config: ConfigService,
+    ) {}
 
     private readonly baseApiUrl = 'https://tle.ivanstanojevic.me/api/tle';
-    private readonly satteliteIDs = [40075, 43696] as const;
+    private readonly idToTrajectory: { [key: number]: Trajectory } = {};
 
-    private readonly idToStatus: { [key: number]: SatelliteStatus } = {};
-
-    public satellites(): Observable<Satellite[]> {
+    public satellitesNow(): Observable<SatelliteObservation[]> {
         const now = new Date();
-        const satelliteObservables = this.satteliteIDs.map((id) =>
-            this.getStatus(id).pipe(
-                mergeMap((status: SatelliteStatus) => {
-                    const coords = this.geographicCoordsAtTime(
-                        status.trajectory,
-                        now,
+        const observations = this.config.satellites.map((satellite) =>
+            this.fetchTrajectory(satellite.id).pipe(
+                mergeMap((trajectory: Trajectory) => {
+                    const coords = this.geographicCoordsAtTime(trajectory, now);
+                    console.log(
+                        'satellitesNow(): coords for trajectory',
+                        trajectory,
+                        coords,
                     );
-                    if (coords === undefined) return EMPTY;
+                    if (coords === undefined) return of(undefined);
                     return of({
-                        name: status.name,
+                        name: satellite.name,
                         coords,
                         time: now,
                     });
                 }),
             ),
         );
-        return forkJoin(satelliteObservables);
+        return forkJoin(observations).pipe(
+            map(
+                (observations) =>
+                    observations.filter(
+                        (o) => o !== undefined,
+                    ) as SatelliteObservation[],
+            ),
+        );
     }
 
-    private getStatus(satelliteId: number): Observable<SatelliteStatus> {
-        type StatusAPIResponse = {
-            name: string;
-            satelliteId: number;
-        } & TwoLineElement;
+    public closestFlybys(
+        observer: GeographicCoords,
+        startTime: Date,
+        timeStepMs: number = 50_000,
+        maxTimeSteps: number = 1000,
+    ): Observable<SatelliteObservation[]> {
+        const times = [...Array(maxTimeSteps).keys()].map(
+            (i) => new Date(startTime.getTime() + i * timeStepMs),
+        );
 
-        if (satelliteId in this.idToStatus)
-            return of(this.idToStatus[satelliteId]);
+        const closestObservations = this.config.satellites.map((satellite) =>
+            this.fetchTrajectory(satellite.id).pipe(
+                mergeMap((trajectory: Trajectory) => {
+                    let closestTime: Date | undefined = undefined;
+                    let closestCoords: GeographicCoords | undefined = undefined;
+
+                    for (const time of times) {
+                        const coords = this.geographicCoordsAtTime(
+                            trajectory,
+                            time,
+                        );
+                        if (
+                            coords !== undefined &&
+                            (closestCoords === undefined ||
+                                observer.distanceKm(coords) <
+                                    observer.distanceKm(closestCoords))
+                        ) {
+                            closestTime = time;
+                            closestCoords = coords;
+                        }
+                    }
+
+                    if (
+                        closestCoords === undefined ||
+                        closestTime === undefined
+                    )
+                        return of(undefined);
+                    return of({
+                        name: satellite.name,
+                        coords: closestCoords,
+                        time: closestTime,
+                    });
+                }),
+            ),
+        );
+
+        return forkJoin(closestObservations).pipe(
+            map(
+                (observations) =>
+                    observations.filter(
+                        (o) => o !== undefined,
+                    ) as SatelliteObservation[],
+            ),
+        );
+    }
+
+    private fetchTrajectory(satelliteId: number): Observable<Trajectory> {
+        if (satelliteId in this.idToTrajectory)
+            return of(this.idToTrajectory[satelliteId]);
 
         return this.httpClient
-            .get<StatusAPIResponse>(`${this.baseApiUrl}/${satelliteId}`)
+            .get<Trajectory>(`${this.baseApiUrl}/${satelliteId}`)
             .pipe(
-                map((response: StatusAPIResponse) => {
-                    const status = {
-                        name: response.name,
-                        trajectory: {
-                            line1: response.line1,
-                            line2: response.line2,
-                        },
-                    };
-                    this.idToStatus[satelliteId] = status;
-                    return status;
+                map((trajectory: Trajectory) => {
+                    this.idToTrajectory[satelliteId] = trajectory;
+                    return trajectory;
                 }),
             );
     }
 
     private geographicCoordsAtTime(
-        trajectory: TwoLineElement,
+        trajectory: Trajectory,
         date: Date,
     ): GeographicCoords | undefined {
         const eciData = propagate(
@@ -100,96 +146,9 @@ export class SatelliteFetcherService {
         if (typeof eciData.position === 'boolean') return undefined;
 
         const geodeticCoords = eciToGeodetic(eciData.position, gstime(date));
-        return {
-            latitude: degreesLat(geodeticCoords.latitude),
-            longitude: degreesLong(geodeticCoords.longitude),
-        };
-    }
-
-    public closestSatelliteInterception(
-        observer: GeographicCoords,
-        startTime: Date,
-        timeStepMs: number = 50_000,
-        maxTimeSteps: number = 1000,
-    ): Observable<Satellite[]> {
-        const times = [...Array(maxTimeSteps).keys()].map(
-            (i) => new Date(startTime.getTime() + i * timeStepMs),
+        return new GeographicCoords(
+            degreesLat(geodeticCoords.latitude),
+            degreesLong(geodeticCoords.longitude),
         );
-
-        return forkJoin(
-            this.satteliteIDs.map((id: number) =>
-                this.getStatus(id).pipe(
-                    mergeMap((status: SatelliteStatus) => {
-                        let closestTime: Date | undefined = undefined;
-                        let closestCoords: GeographicCoords | undefined =
-                            undefined;
-
-                        for (const time of times) {
-                            const coords = this.geographicCoordsAtTime(
-                                status.trajectory,
-                                time,
-                            );
-                            if (
-                                coords !== undefined &&
-                                (closestCoords === undefined ||
-                                    this.distance(observer, coords) <
-                                        this.distance(observer, closestCoords))
-                            ) {
-                                closestTime = time;
-                                closestCoords = coords;
-                            }
-                        }
-
-                        if (
-                            closestCoords === undefined ||
-                            closestTime === undefined
-                        )
-                            return EMPTY;
-                        return of({
-                            name: status.name,
-                            coords: closestCoords,
-                            time: closestTime,
-                        });
-                    }),
-                ),
-            ),
-        );
-    }
-
-    private distance(
-        pointA: GeographicCoords,
-        pointB: GeographicCoords,
-    ): number {
-        const pointARads = this.coordsInRads(pointA);
-        const pointBRads = this.coordsInRads(pointB);
-
-        const sineSquareLatitudeDifference = Math.pow(
-            Math.sin((pointARads.latitude - pointBRads.latitude) / 2),
-            2,
-        );
-        const sineSquareLongitudeDifference = Math.pow(
-            Math.sin((pointARads.longitude - pointBRads.longitude) / 2),
-            2,
-        );
-
-        return (
-            2 *
-            Math.asin(
-                Math.sqrt(
-                    sineSquareLatitudeDifference +
-                        Math.cos(pointARads.latitude) *
-                            Math.cos(pointBRads.latitude) *
-                            sineSquareLongitudeDifference,
-                ),
-            )
-        );
-    }
-
-    private coordsInRads(coords: GeographicCoords): GeographicCoords {
-        const scaleFactor = Math.PI / 180;
-        return {
-            latitude: coords.latitude * scaleFactor,
-            longitude: coords.longitude * scaleFactor,
-        };
     }
 }

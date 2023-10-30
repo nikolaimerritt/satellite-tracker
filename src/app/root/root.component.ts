@@ -2,15 +2,16 @@ import { Component } from '@angular/core';
 import { Subscription, interval, map } from 'rxjs';
 import {
     SatelliteFetcherService,
-    Satellite,
+    SatelliteObservation,
 } from 'src/app/satellite-fetcher.service';
+import { GeographicCoords } from '../utils/geographic-coords';
 
 @Component({
     selector: 'root',
     templateUrl: './root.component.html',
 })
 export class RootComponent {
-    protected satellites: Satellite[] = [];
+    protected satellites: SatelliteObservation[] = [];
 
     private readonly subscriptions: Subscription[] = [];
     private readonly satelliteUpdateInterval = 1000 * 1000;
@@ -26,10 +27,7 @@ export class RootComponent {
         );
 
         this.satelliteFetcher
-            .closestSatelliteInterception(
-                { latitude: 51.507, longitude: -0.0641 },
-                new Date(),
-            )
+            .closestFlybys(new GeographicCoords(51.507, -0.064), new Date())
             .subscribe((satellite) => {
                 console.log('satellite overhead', satellite);
             });
@@ -37,7 +35,7 @@ export class RootComponent {
 
     private updateSatellites() {
         this.subscriptions.push(
-            this.satelliteFetcher.satellites().subscribe((satellites) => {
+            this.satelliteFetcher.satellitesNow().subscribe((satellites) => {
                 this.satellites = satellites;
             }),
         );

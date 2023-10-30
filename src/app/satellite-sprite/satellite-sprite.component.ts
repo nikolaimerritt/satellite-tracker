@@ -1,5 +1,5 @@
 import { Component, Input, ElementRef, HostBinding } from '@angular/core';
-import { Satellite } from '../satellite-fetcher.service';
+import { SatelliteObservation } from '../satellite-fetcher.service';
 
 @Component({
     selector: 'satellite-sprite',

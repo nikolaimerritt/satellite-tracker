@@ -1,0 +1,16 @@
+{
+    "satellites": [
+        {
+            "name": "ISS Zarya",
+            "id": 25544
+        },
+        {
+            "name": "Norsat 1",
+            "id": 42826
+        },
+        {
+            "name": "Robusta 1B",
+            "id": 42792
+        }
+    ]
+}
