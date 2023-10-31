@@ -1,6 +1,6 @@
 import { Component, Input, ElementRef, ViewChild } from '@angular/core';
 import { Satellite, SatelliteObservation } from '../satellite-fetcher.service';
-import { GeographicCoords } from '../utils/geographic-coords';
+import { GeographicCoords } from '../geographic-coords';
 
 interface ScreenCoords {
     x: number;
@@ -17,20 +17,19 @@ export class MapComponent {
     @Input() satellites!: Satellite[];
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
-        const animationStart = new Date();
-        const step = (msSinceAnimationStart: number) => {
-            const geographicCoords = satellite.path(
-                new Date(animationStart.getTime() + msSinceAnimationStart),
-            );
-            if (geographicCoords) {
-                const screenCoords = this.toScreenCoords(geographicCoords);
-                element.nativeElement.style.left = screenCoords.x + 'px';
-                element.nativeElement.style.top = screenCoords.y + 'px';
-            }
-            window.requestAnimationFrame(step);
-        };
-
-        window.requestAnimationFrame(step);
+        // const animationStart = new Date();
+        // const step = (msSinceAnimationStart: number) => {
+        //     const geographicCoords = satellite.path(
+        //         new Date(animationStart.getTime() + msSinceAnimationStart),
+        //     );
+        //     if (geographicCoords) {
+        //         const screenCoords = this.toScreenCoords(geographicCoords);
+        //         element.nativeElement.style.left = screenCoords.x + 'px';
+        //         element.nativeElement.style.top = screenCoords.y + 'px';
+        //     }
+        //     window.requestAnimationFrame(step);
+        // };
+        // window.requestAnimationFrame(step);
     }
 
     private toScreenCoords(coords: GeographicCoords): ScreenCoords {
@@ -44,5 +43,29 @@ export class MapComponent {
         );
         const y = mapHeight / 2 - (mapWidth * mercatorFactor) / (2 * Math.PI);
         return { x, y };
+    }
+
+    private toGeographicCoords(coords: ScreenCoords): GeographicCoords {
+        // works
+        const mapWidth = this.element.nativeElement.offsetWidth;
+        const mapHeight = this.element.nativeElement.offsetHeight;
+
+        const longitude = (360 * coords.x) / mapWidth - 180;
+        const mercatorFactor =
+            ((mapHeight / 2 - coords.y) * 2 * Math.PI) / mapWidth;
+        const latitudeRadians =
+            2 * (Math.atan(Math.exp(mercatorFactor)) - Math.PI / 4);
+        const latitude = (latitudeRadians * 180) / Math.PI;
+        return new GeographicCoords(latitude, longitude);
+    }
+
+    protected onClick(event: MouseEvent) {
+        const screenCoords: ScreenCoords = {
+            x: event.offsetX,
+            y: event.offsetY,
+        };
+        const geographicCoords = this.toGeographicCoords(screenCoords);
+        for (const satellite of this.satellites) {
+        }
     }
 }

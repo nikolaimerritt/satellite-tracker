@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { GeographicCoords } from './utils/geographic-coords';
+import { GeographicCoords } from './geographic-coords';
 import { Observable, map, forkJoin, mergeMap, EMPTY, of, filter } from 'rxjs';
 import {
     twoline2satrec,
@@ -44,35 +44,35 @@ export class SatelliteFetcherService {
     private readonly baseApiUrl = 'https://tle.ivanstanojevic.me/api/tle';
     private readonly idToTrajectory: { [id: number]: Trajectory } = {};
 
-    public observationsAtTime(
-        // TO SELF: not needed any more
-        time = new Date(),
-    ): Observable<SatelliteObservation[]> {
-        const observations = this.config.satellites.map((satellite) =>
-            this.fetchTrajectory(satellite.id).pipe(
-                map((trajectory: Trajectory) => {
-                    const coords = this.geographicCoordsAtTime(
-                        trajectory,
-                        time,
-                    );
-                    if (coords === undefined) return undefined;
-                    return {
-                        name: satellite.name,
-                        coords,
-                        time: time,
-                    };
-                }),
-            ),
-        );
-        return forkJoin(observations).pipe(
-            map(
-                (observations) =>
-                    observations.filter(
-                        (observation) => observation !== undefined,
-                    ) as SatelliteObservation[],
-            ),
-        );
-    }
+    // public observationsAtTime(
+    //     // TO SELF: not needed any more
+    //     time = new Date(),
+    // ): Observable<SatelliteObservation[]> {
+    //     const observations = this.config.satellites.map((satellite) =>
+    //         this.fetchTrajectory(satellite.id).pipe(
+    //             map((trajectory: Trajectory) => {
+    //                 const coords = this.geographicCoordsAtTime(
+    //                     trajectory,
+    //                     time,
+    //                 );
+    //                 if (coords === undefined) return undefined;
+    //                 return {
+    //                     name: satellite.name,
+    //                     coords,
+    //                     time: time,
+    //                 };
+    //             }),
+    //         ),
+    //     );
+    //     return forkJoin(observations).pipe(
+    //         map(
+    //             (observations) =>
+    //                 observations.filter(
+    //                     (observation) => observation !== undefined,
+    //                 ) as SatelliteObservation[],
+    //         ),
+    //     );
+    // }
 
     public satellites(): Observable<Satellite[]> {
         return forkJoin(
@@ -91,12 +91,11 @@ export class SatelliteFetcherService {
 
     public closestFlyby(
         satellite: Satellite,
-        observer: EciVec3<number>,
+        observer: EcfVec3<number>,
         startTime: Date,
         endTime: Date,
-    ) {
-        console.log('computing closest fly by between', startTime, endTime);
-
+    ): Observable<SatelliteObservation> {
+        // TO SELF: optimise this
         const squaredNorm = (coords: EcfVec3<number>) =>
             coords.x * coords.x + coords.y * coords.y + coords.z * coords.z;
         const subtract = (coords: EcfVec3<number>, other: EcfVec3<number>) =>
@@ -123,8 +122,8 @@ export class SatelliteFetcherService {
         const normalizedObserver = normalize(observer);
         const samples = 1000;
 
-        this.fetchTrajectory(satellite.id).subscribe(
-            (trajectory: Trajectory) => {
+        return this.fetchTrajectory(satellite.id).pipe(
+            map((trajectory: Trajectory) => {
                 const path = (time: number) =>
                     normalize(
                         throwIfUndefined(
@@ -187,7 +186,8 @@ export class SatelliteFetcherService {
                 )[0];
                 console.log('lowest point', closestPoint); // also works
 
-                const sat = satellite.path(new Date(closestPoint[0]));
+                const cloestTime = new Date(closestPoint[0]);
+                const sat = satellite.path(cloestTime);
                 console.log(
                     'satellite at time',
                     sat,
@@ -198,7 +198,12 @@ export class SatelliteFetcherService {
                         ),
                     ),
                 ); // also works
-            },
+                return {
+                    name: satellite.name,
+                    coords: satellite.path(cloestTime),
+                    time: new Date(closestPoint[0]),
+                } as SatelliteObservation;
+            }),
         );
     }
 
