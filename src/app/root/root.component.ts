@@ -32,9 +32,10 @@ export class RootComponent {
         this.subscriptions.push(
             this.satelliteFetcher.satellites().subscribe((satellites) => {
                 const me = { x: 7974.81, y: -9.87, z: 9962.1 };
-                satellites[0].closestObservation(
+                const closest = satellites[0].closestObservation(
                     new GeographicCoords(51.50786, -0.063964),
                 );
+                console.log("root: closest", closest);
             }),
         );
     }

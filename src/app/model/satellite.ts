@@ -91,7 +91,7 @@ export class Satellite {
                 ?.squaredDistance(normalisedObserver) ?? NaN;
 
         const closestTime = new Date(
-            Satellite.minimiseFn(distFromObserver, startTime, endTime, 1000),
+            Satellite.minimiseFn(distFromObserver, startTime, endTime, [1000, 100]),
         );
         const closestCoords = this.coordsAt(closestTime);
         if (closestCoords === undefined) return undefined;
@@ -105,36 +105,30 @@ export class Satellite {
         fn: (x: number) => number,
         xStart: number,
         xEnd: number,
-        samples: number,
+        sampleSchedules: number[],
     ): number {
+        if (sampleSchedules.length === 0) return (xStart + xEnd) / 2;
+
         let lowestF = fn(xStart);
         let lowestX = xStart;
 
-        const deltaX = (xEnd - xStart) / samples;
+        const deltaX = (xEnd - xStart) / sampleSchedules[0];
         const sampleWindow = [...Array(4).keys()].map((i) =>
             fn(xStart + i * deltaX),
         );
-        const fs = [...sampleWindow.map((f, i) => [xStart + i * deltaX, f])];
-        const inflections = [];
-        for (let i = 0; i + 4 <= samples; i++) {
+        for (let i = 0; i + 4 <= sampleSchedules[0]; i++) {
             const diffBeforeMin = sampleWindow[2] - sampleWindow[0];
             const diffAfterMin = sampleWindow[3] - sampleWindow[1];
-            if (
-                (diffBeforeMin <= 0 && diffAfterMin >= 0) ||
-                (diffAfterMin <= 0 && diffBeforeMin >= 0)
-            ) {
-                const xInflection = xStart + (i + 1.5) * deltaX;
+            if (diffBeforeMin <= 0 && diffAfterMin >= 0) {
+                const xInflection = Satellite.minimiseFn(fn, xStart + (i + 1) * deltaX, xStart + (i + 2) * deltaX, sampleSchedules.slice(1,))
                 const inflectionPoint = fn(xInflection);
-                inflections.push([xInflection, inflectionPoint]);
                 if (inflectionPoint < lowestF) {
                     lowestF = inflectionPoint;
                     lowestX = xInflection;
                 }
             }
             sampleWindow.shift();
-            const x = xStart + (i + 4) * deltaX;
             sampleWindow.push(fn(xStart + (i + 4) * deltaX));
-            fs.push([x, fn(x)]);
         }
         return lowestX;
     }
