@@ -1,12 +1,23 @@
-<div *ngFor="let satellite of this.satellites">
-    <satellite-sprite
-        [name]="this.satellite.name"
-        (elementChange)="this.animateSatellite(satellite, $event)"
-        (click)="this.onSatelliteClick(satellite)"
-    ></satellite-sprite>
+<div style="display: flex; flex-direction: column; align-items: center">
+    <span
+        class="flyby-button"
+        [ngClass]="{ disabled: this.selectedSatellite === undefined }"
+        (click)="this.calculatingNextFlyby = true"
+    >
+        Calculate next flyby
+    </span>
+
+    <div *ngFor="let satellite of this.satellites">
+        <satellite-sprite
+            [name]="this.satellite.name"
+            (elementChange)="this.animateSatellite(satellite, $event)"
+            (click)="this.selectedSatellite = satellite"
+        ></satellite-sprite>
+    </div>
+    <img
+        class="map-background"
+        src="assets/mercator-2.jpg"
+        [style]="{ cursor: this.cursor() }"
+        (click)="this.onClick($event)"
+    />
 </div>
-<img
-    class="map-background"
-    src="assets/mercator-2.jpg"
-    (click)="this.onClick($event)"
-/>

@@ -5,7 +5,7 @@ import {
     Output,
     EventEmitter,
 } from '@angular/core';
-import { Satellite } from '../model/satellite';
+import { Observation, Satellite } from '../model/satellite';
 import {
     EarthCentredCoords,
     MercatorProjection,
@@ -20,7 +20,10 @@ export class MapComponent {
     constructor(private element: ElementRef) {}
 
     @Input() satellites!: Satellite[];
-    @Output() selectedSatelliteChange = new EventEmitter<Satellite>();
+    @Output() nextFlybyChange = new EventEmitter<Observation>();
+
+    protected selectedSatellite?: Satellite;
+    protected calculatingNextFlyby = false;
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
         const animationStart = new Date();
@@ -42,25 +45,34 @@ export class MapComponent {
     }
 
     protected onClick(event: MouseEvent) {
-        const mapWidth = this.element.nativeElement.offsetWidth;
-        const mapHeight = this.element.nativeElement.offsetHeight;
+        if (this.selectedSatellite !== undefined && this.calculatingNextFlyby) {
+            const mapWidth = this.element.nativeElement.offsetWidth;
+            const mapHeight = this.element.nativeElement.offsetHeight;
 
-        const mercator: MercatorProjection = {
-            x: event.offsetX / mapWidth,
-            y: event.offsetY / mapHeight,
-        };
-        const centredCoords =
-            EarthCentredCoords.fromMercatorProjection(mercator);
-        for (const satellite of this.satellites) {
-            console.log(
-                'closest flyby',
-                satellite.name,
-                satellite.closestObservation(centredCoords),
-            );
+            const mercator: MercatorProjection = {
+                x: event.offsetX / mapWidth,
+                y: event.offsetY / mapHeight,
+            };
+            const centredCoords =
+                EarthCentredCoords.fromMercatorProjection(mercator);
+            const nextFlyby =
+                this.selectedSatellite.closestObservation(centredCoords);
+            if (nextFlyby) {
+                this.nextFlybyChange.emit(nextFlyby);
+                this.selectedSatellite = undefined;
+                this.calculatingNextFlyby = false;
+            }
         }
     }
 
-    protected onSatelliteClick(satellite: Satellite) {
-        this.selectedSatelliteChange.emit(satellite);
+    protected onCalculateFlybyButton() {
+        if (this.selectedSatellite !== undefined) {
+            this.calculatingNextFlyby = true;
+        }
+    }
+
+    protected cursor() {
+        if (this.calculatingNextFlyby) return 'crosshair';
+        return 'default';
     }
 }

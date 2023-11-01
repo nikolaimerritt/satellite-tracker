@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { Subscription, interval, map } from 'rxjs';
+import { Observable, Subscription, interval, map } from 'rxjs';
 import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
-import { Satellite } from '../model/satellite';
+import { Observation, Satellite } from '../model/satellite';
 import { ecfToEci, eciToGeodetic, geodeticToEcf, gstime } from 'satellite.js';
 import { EarthCentredCoords } from '../model/earth-centred-coords';
 
@@ -15,6 +15,7 @@ export class RootComponent {
 
     private readonly subscriptions: Subscription[] = [];
     protected selectedSatellite?: Satellite = undefined;
+    protected calculatingNextFlyby = false;
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
@@ -50,5 +51,16 @@ export class RootComponent {
 
     private onSatelliteSelect(satellite: Satellite) {
         this.selectedSatellite = satellite;
+    }
+
+    protected cursor() {
+        if (this.calculatingNextFlyby) return 'crosshair';
+        return 'default';
+    }
+
+    protected onNextFlyby(flyby: Observation) {
+        console.log('root: next flyby', flyby);
+        this.calculatingNextFlyby = false;
+        this.selectedSatellite = undefined;
     }
 }
