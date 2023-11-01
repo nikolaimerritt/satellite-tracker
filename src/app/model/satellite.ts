@@ -1,5 +1,5 @@
 import { propagate, twoline2satrec, gstime, eciToEcf } from 'satellite.js';
-import { CentredCartesianCoords as EarthCentredCoords } from './centred-cartesian-coords';
+import { EarthCentredCoords as EarthCentredCoords } from './earth-centred-coords';
 
 export class Trajectory {
     public constructor(
@@ -37,8 +37,6 @@ export class Satellite {
     ) {}
 
     public coordsAt(time: Date): EarthCentredCoords | undefined {
-        if (!this.trajectory.isInRange(time)) return undefined;
-
         const eciCoords = propagate(
             twoline2satrec(
                 this.trajectory.twoLineElement.line1,

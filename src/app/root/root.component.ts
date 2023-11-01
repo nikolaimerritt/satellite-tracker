@@ -3,7 +3,7 @@ import { Subscription, interval, map } from 'rxjs';
 import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
 import { Satellite } from '../model/satellite';
 import { ecfToEci, eciToGeodetic, geodeticToEcf, gstime } from 'satellite.js';
-import { CentredCartesianCoords } from '../model/centred-cartesian-coords';
+import { EarthCentredCoords } from '../model/earth-centred-coords';
 
 @Component({
     selector: 'root',

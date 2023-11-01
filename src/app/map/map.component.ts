@@ -1,9 +1,9 @@
-import { Component, Input, ElementRef, ViewChild } from '@angular/core';
+import { Component, Input, ElementRef } from '@angular/core';
 import { Satellite } from '../model/satellite';
 import {
-    CentredCartesianCoords,
-    MercatorCoordinates as MercatorProjection,
-} from '../model/centred-cartesian-coords';
+    EarthCentredCoords,
+    MercatorProjection,
+} from '../model/earth-centred-coords';
 
 @Component({
     selector: 'map',
@@ -42,7 +42,7 @@ export class MapComponent {
             y: event.offsetY / mapHeight,
         };
         const centredCoords =
-            CentredCartesianCoords.fromMercatorProjection(mercator);
+            EarthCentredCoords.fromMercatorProjection(mercator);
         for (const satellite of this.satellites) {
             console.log(
                 'closest flyby',
