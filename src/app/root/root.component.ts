@@ -27,40 +27,10 @@ export class RootComponent {
                     (satellites: Satellite[]) => (this.satellites = satellites),
                 ),
         );
-
-        // this.subscriptions.push(
-        //     this.satelliteFetcher.satellites().subscribe((satellites) => {
-        //         const me = { x: 7974.81, y: -9.87, z: 9962.1 };
-        //         const closest = satellites[0].closestObservation(
-        //             new GeographicCoords(51.50786, -0.063964),
-        //         );
-        //         console.log("root: closest", closest);
-        //     }),
-        // );
-
-        // const g = new GeographicCoords(51.50786, -0.063964).toRadians();
-        // const now = new Date();
-        // const g2 = eciToGeodetic(ecfToEci(geodeticToEcf(g), gstime(now)), gstime(now));
-        // console.log("conversion", g, new GeographicCoords(g2.latitude, g2.longitude, g.height, 'Radians'));
     }
 
     private ngOnDestroy() {
         for (const subscription of this.subscriptions)
             subscription.unsubscribe();
-    }
-
-    private onSatelliteSelect(satellite: Satellite) {
-        this.selectedSatellite = satellite;
-    }
-
-    protected cursor() {
-        if (this.calculatingNextFlyby) return 'crosshair';
-        return 'default';
-    }
-
-    protected onNextFlyby(flyby: Flyby) {
-        console.log('root: next flyby', flyby);
-        this.calculatingNextFlyby = false;
-        this.selectedSatellite = undefined;
     }
 }

@@ -1,3 +1,5 @@
+
+
 :host {
     position: relative;
     display: flex;
@@ -32,12 +34,6 @@
 
 satellite-sprite {
     position: absolute;
-    cursor: pointer;
-    &:hover {
-        background-color: rgba($color: (#8ecae6), $alpha: 0.1);
-        border: 2px rgba($color: (#8ecae6), $alpha: 0.1);
-        border-radius: 32px;
-    }
 }
 
 flyby-sprite {

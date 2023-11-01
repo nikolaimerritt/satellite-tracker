@@ -25,6 +25,7 @@ export class TwoLineElement {
 }
 
 export interface Flyby {
+    satellite: Satellite;
     coords: EarthCentredCoords;
     time: Date;
 }
@@ -52,7 +53,7 @@ export class Satellite {
     public closestObservation(observer: EarthCentredCoords): Flyby | undefined {
         const normalisedObserver = observer.normalised();
         const startTime = this.trajectory.start.getTime();
-        const endTime = startTime + 2 * 24 * 60 * 60_000;
+        const endTime = startTime + TwoLineElement.accuracyMs;
         const distFromObserver = (timestamp: number) =>
             this.coordsAt(new Date(timestamp))
                 ?.normalised()
@@ -69,6 +70,7 @@ export class Satellite {
         const closestCoords = this.coordsAt(closestTime);
         if (closestCoords === undefined) return undefined;
         return {
+            satellite: this,
             coords: closestCoords,
             time: closestTime,
         };

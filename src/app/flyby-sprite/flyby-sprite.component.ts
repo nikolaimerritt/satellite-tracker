@@ -5,7 +5,6 @@ import {
     ElementRef,
     EventEmitter,
 } from '@angular/core';
-import { SphericalCoords } from '../model/earth-centred-coords';
 import { Flyby } from '../model/satellite';
 
 @Component({
@@ -22,12 +21,9 @@ export class FlybySpriteComponent {
     private readonly decimalPlaces = 2;
     private readonly timeFormat: Intl.DateTimeFormatOptions = {
         weekday: 'long',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
     };
 
     private ngAfterViewInit() {
@@ -38,7 +34,7 @@ export class FlybySpriteComponent {
         const spherical = this.flyby.coords.toSpherical();
         return `${spherical.latitude.toFixed(
             this.decimalPlaces,
-        )} ${spherical.longitude.toFixed(this.decimalPlaces)}`;
+        )}° N ${spherical.longitude.toFixed(this.decimalPlaces)}° E`;
     }
 
     protected time(): string {

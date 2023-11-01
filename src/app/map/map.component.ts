@@ -6,7 +6,7 @@ import {
     EventEmitter,
     ViewChild,
 } from '@angular/core';
-import { Flyby, Satellite } from '../model/satellite';
+import { Flyby, Satellite, TwoLineElement } from '../model/satellite';
 import {
     EarthCentredCoords,
     MercatorProjection,
@@ -21,11 +21,13 @@ export class MapComponent {
     constructor(private element: ElementRef) {}
 
     @Input() satellites!: Satellite[];
-    @Output() nextFlybyChange = new EventEmitter<Flyby>();
 
     protected selectedSatellite?: Satellite;
     protected calculatingNextFlyby = false;
     protected flyby?: Flyby = undefined;
+    protected readonly flybyEndDay = new Date(
+        new Date().getTime() + TwoLineElement.accuracyMs,
+    ).toLocaleDateString('en-US', { weekday: 'long' });
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
         const animationStart = new Date();
@@ -36,7 +38,7 @@ export class MapComponent {
                 )
                 ?.mercatorProjection();
             if (mercator) {
-                // this.moveTo(element, mercator);
+                this.moveTo(element, mercator);
             }
             window.requestAnimationFrame(step);
         };
@@ -54,15 +56,22 @@ export class MapComponent {
             };
             const centredCoords =
                 EarthCentredCoords.fromMercatorProjection(mercator);
-            const nextFlyby =
+            const flyby =
                 this.selectedSatellite.closestObservation(centredCoords);
-            if (nextFlyby) {
-                this.flyby = nextFlyby;
-                this.nextFlybyChange.emit(nextFlyby);
+            if (flyby) {
+                this.flyby = flyby;
                 this.selectedSatellite = undefined;
                 this.calculatingNextFlyby = false;
             }
+        } else {
+            this.flyby = undefined;
         }
+    }
+
+    protected onSatelliteClick(satellite: Satellite) {
+        this.calculatingNextFlyby = false;
+        this.flyby = undefined;
+        this.selectedSatellite = satellite;
     }
 
     protected onCalculateFlybyButtonClick() {
@@ -72,7 +81,6 @@ export class MapComponent {
     }
 
     private moveTo(element: ElementRef, mercator: MercatorProjection) {
-        console.log('moving to', element, mercator);
         const mapWidth = this.element.nativeElement.offsetWidth;
         const mapHeight = this.element.nativeElement.offsetHeight;
 
@@ -80,7 +88,7 @@ export class MapComponent {
         element.nativeElement.style.top = mercator.y * mapHeight + 'px';
     }
 
-    protected moveFlyby(element: ElementRef, flyby: Flyby) {
+    protected moveFlybySprite(element: ElementRef, flyby: Flyby) {
         const mercator = flyby.coords.mercatorProjection();
         this.moveTo(element, mercator);
     }

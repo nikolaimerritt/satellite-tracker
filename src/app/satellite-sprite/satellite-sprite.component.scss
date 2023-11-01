@@ -1,8 +1,17 @@
+$highlight: rgba($color: (#8ecae6), $alpha: 0.1);
+
 :host {
     display: flex;
     flex-direction: column;
     align-items: center;
     transform: translate(-50%, -50%);
+
+    cursor: pointer;
+    &:hover {
+        background-color: $highlight;
+        border: 2px $highlight;
+        border-radius: 32px;
+    }
 }
 
 img {
@@ -10,6 +19,8 @@ img {
 }
 
 span {
+    text-align: center;
+    width: max-content;
     background: silver;
     opacity: 0.6;
     padding: 4px;

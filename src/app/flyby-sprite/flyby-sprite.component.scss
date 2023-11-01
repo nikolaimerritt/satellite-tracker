@@ -1,13 +1,27 @@
+$background: rgba($color: silver, $alpha: 0.9);
+
 :host {
     transform: translate(-50%, 50%);
 }
 
+span {
+    text-align: center;
+}
+
 .container {
-    display: flex; 
+    display: flex;
     flex-direction: column; 
     align-items: center;
-    background: silver;
-    opacity: 0.9;
+    background: $background;
     border-radius: 8px;
-    font-size: 10px;
+    padding: 2px;
+    font-size: 12px;
+}
+
+.arrow {
+    height: 0px;
+    width: 0px;
+    border-width: 8px;
+    border-color: $background transparent transparent transparent;
+    border-style: solid;
 }
