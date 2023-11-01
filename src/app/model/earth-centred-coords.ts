@@ -7,6 +7,11 @@ export interface MercatorProjection {
     y: number;
 }
 
+export interface SphericalCoords {
+    latitude: number;
+    longitude: number;
+}
+
 export class EarthCentredCoords {
     public constructor(
         public readonly x: number,
@@ -50,9 +55,16 @@ export class EarthCentredCoords {
         );
     }
 
+    public toSpherical(): SphericalCoords {
+        const geodetic = eciToGeodetic(ecfToEci(this, 0), 0);
+        return {
+            latitude: (geodetic.latitude * 180) / Math.PI,
+            longitude: (geodetic.longitude * 180) / Math.PI,
+        };
+    }
+
     public mercatorProjection(): MercatorProjection {
-        const gmstTime = 0;
-        const geodetic = eciToGeodetic(ecfToEci(this, gmstTime), gmstTime);
+        const geodetic = eciToGeodetic(ecfToEci(this, 0), 0);
         const x = (geodetic.longitude + Math.PI) / (2 * Math.PI);
         const mercatorFactor = Math.log(
             Math.tan(Math.PI / 4 + geodetic.latitude / 2),

@@ -7,9 +7,15 @@ import { HttpClientModule } from '@angular/common/http';
 import { SatelliteSpriteComponent } from './app/satellite-sprite/satellite-sprite.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ConfigService } from './app/config.service';
+import { FlybySpriteComponent } from './app/flyby-sprite/flyby-sprite.component';
 
 @NgModule({
-    declarations: [RootComponent, MapComponent, SatelliteSpriteComponent],
+    declarations: [
+        RootComponent,
+        MapComponent,
+        SatelliteSpriteComponent,
+        FlybySpriteComponent,
+    ],
     imports: [BrowserModule, HttpClientModule, BrowserAnimationsModule],
     providers: [
         ConfigService,

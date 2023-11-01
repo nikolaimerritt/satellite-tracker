@@ -1,0 +1,13 @@
+:host {
+    transform: translate(-50%, 50%);
+}
+
+.container {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    background: silver;
+    opacity: 0.9;
+    border-radius: 8px;
+    font-size: 10px;
+}

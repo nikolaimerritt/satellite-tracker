@@ -24,7 +24,7 @@ export class TwoLineElement {
     public static readonly accuracyMs = 172_800_000;
 }
 
-export interface Observation {
+export interface Flyby {
     coords: EarthCentredCoords;
     time: Date;
 }
@@ -49,9 +49,7 @@ export class Satellite {
         return new EarthCentredCoords(coords.x, coords.y, coords.z);
     }
 
-    public closestObservation(
-        observer: EarthCentredCoords,
-    ): Observation | undefined {
+    public closestObservation(observer: EarthCentredCoords): Flyby | undefined {
         const normalisedObserver = observer.normalised();
         const startTime = this.trajectory.start.getTime();
         const endTime = startTime + 2 * 24 * 60 * 60_000;

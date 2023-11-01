@@ -18,6 +18,14 @@
         class="map-background"
         src="assets/mercator-2.jpg"
         [style]="{ cursor: this.cursor() }"
-        (click)="this.onClick($event)"
+        (click)="this.onMapClick($event)"
     />
+    <flyby-sprite
+        #flybySprite
+        *ngIf="this.flyby !== undefined"
+        [id]="'flyby-sprite'"
+        [flyby]="this.flyby"
+        (elementChange)="this.moveFlyby($event, this.flyby)"
+    >
+    </flyby-sprite>
 </div>

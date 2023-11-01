@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Observable, Subscription, interval, map } from 'rxjs';
 import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
-import { Observation, Satellite } from '../model/satellite';
+import { Flyby, Satellite } from '../model/satellite';
 import { ecfToEci, eciToGeodetic, geodeticToEcf, gstime } from 'satellite.js';
 import { EarthCentredCoords } from '../model/earth-centred-coords';
 
@@ -58,7 +58,7 @@ export class RootComponent {
         return 'default';
     }
 
-    protected onNextFlyby(flyby: Observation) {
+    protected onNextFlyby(flyby: Flyby) {
         console.log('root: next flyby', flyby);
         this.calculatingNextFlyby = false;
         this.selectedSatellite = undefined;

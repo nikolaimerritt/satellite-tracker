@@ -4,8 +4,9 @@ import {
     ElementRef,
     Output,
     EventEmitter,
+    ViewChild,
 } from '@angular/core';
-import { Observation, Satellite } from '../model/satellite';
+import { Flyby, Satellite } from '../model/satellite';
 import {
     EarthCentredCoords,
     MercatorProjection,
@@ -20,10 +21,11 @@ export class MapComponent {
     constructor(private element: ElementRef) {}
 
     @Input() satellites!: Satellite[];
-    @Output() nextFlybyChange = new EventEmitter<Observation>();
+    @Output() nextFlybyChange = new EventEmitter<Flyby>();
 
     protected selectedSatellite?: Satellite;
     protected calculatingNextFlyby = false;
+    protected flyby?: Flyby = undefined;
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
         const animationStart = new Date();
@@ -34,17 +36,14 @@ export class MapComponent {
                 )
                 ?.mercatorProjection();
             if (mercator) {
-                const mapWidth = this.element.nativeElement.offsetWidth;
-                const mapHeight = this.element.nativeElement.offsetHeight;
-                element.nativeElement.style.left = mercator.x * mapWidth + 'px';
-                element.nativeElement.style.top = mercator.y * mapHeight + 'px';
+                // this.moveTo(element, mercator);
             }
             window.requestAnimationFrame(step);
         };
         window.requestAnimationFrame(step);
     }
 
-    protected onClick(event: MouseEvent) {
+    protected onMapClick(event: MouseEvent) {
         if (this.selectedSatellite !== undefined && this.calculatingNextFlyby) {
             const mapWidth = this.element.nativeElement.offsetWidth;
             const mapHeight = this.element.nativeElement.offsetHeight;
@@ -58,6 +57,7 @@ export class MapComponent {
             const nextFlyby =
                 this.selectedSatellite.closestObservation(centredCoords);
             if (nextFlyby) {
+                this.flyby = nextFlyby;
                 this.nextFlybyChange.emit(nextFlyby);
                 this.selectedSatellite = undefined;
                 this.calculatingNextFlyby = false;
@@ -65,10 +65,24 @@ export class MapComponent {
         }
     }
 
-    protected onCalculateFlybyButton() {
+    protected onCalculateFlybyButtonClick() {
         if (this.selectedSatellite !== undefined) {
             this.calculatingNextFlyby = true;
         }
+    }
+
+    private moveTo(element: ElementRef, mercator: MercatorProjection) {
+        console.log('moving to', element, mercator);
+        const mapWidth = this.element.nativeElement.offsetWidth;
+        const mapHeight = this.element.nativeElement.offsetHeight;
+
+        element.nativeElement.style.left = mercator.x * mapWidth + 'px';
+        element.nativeElement.style.top = mercator.y * mapHeight + 'px';
+    }
+
+    protected moveFlyby(element: ElementRef, flyby: Flyby) {
+        const mercator = flyby.coords.mercatorProjection();
+        this.moveTo(element, mercator);
     }
 
     protected cursor() {
