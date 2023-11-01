@@ -20,6 +20,15 @@ export class FlybySpriteComponent {
     public constructor(private element: ElementRef) {}
 
     private readonly decimalPlaces = 2;
+    private readonly timeFormat: Intl.DateTimeFormatOptions = {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+    };
 
     private ngAfterViewInit() {
         this.elementChange.emit(this.element);
@@ -33,6 +42,6 @@ export class FlybySpriteComponent {
     }
 
     protected time(): string {
-        return `${this.flyby.time}`;
+        return this.flyby.time.toLocaleDateString('en-us', this.timeFormat);
     }
 }
