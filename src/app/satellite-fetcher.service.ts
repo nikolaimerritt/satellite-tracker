@@ -60,7 +60,10 @@ export class SatelliteFetcherService {
         return forkJoin(
             this.config.satellites.map((config) =>
                 this.fetchTrajectory(config.id).pipe(
-                    map((trajectory: Trajectory) => new Satellite(config.name, config.id, trajectory)),
+                    map(
+                        (trajectory: Trajectory) =>
+                            new Satellite(config.name, config.id, trajectory),
+                    ),
                 ),
             ),
         );
@@ -241,7 +244,12 @@ export class SatelliteFetcherService {
     private fetchTrajectory(satelliteId: number): Observable<Trajectory> {
         return this.httpClient
             .get<TwoLineElement>(`${this.baseApiUrl}/${satelliteId}`)
-            .pipe(map((twoLineElement: TwoLineElement) => new Trajectory(new Date(), twoLineElement)))
+            .pipe(
+                map(
+                    (twoLineElement: TwoLineElement) =>
+                        new Trajectory(new Date(), twoLineElement),
+                ),
+            );
     }
 
     // private cartesianCoordsAtTime(

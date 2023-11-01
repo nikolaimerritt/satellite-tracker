@@ -66,7 +66,11 @@ export class MapComponent {
         };
         const geographicCoords = this.toGeographicCoords(screenCoords);
         for (const satellite of this.satellites) {
-            console.log("closest flyby", satellite.name, satellite.closestObservation(geographicCoords))
+            console.log(
+                'closest flyby',
+                satellite.name,
+                satellite.closestObservation(geographicCoords),
+            );
         }
     }
 }

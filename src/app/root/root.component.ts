@@ -1,8 +1,6 @@
 import { Component } from '@angular/core';
 import { Subscription, interval, map } from 'rxjs';
-import {
-    SatelliteFetcherService,
-} from 'src/app/satellite-fetcher.service';
+import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
 import { GeographicCoords } from '../model/geographic-coords';
 import { Satellite } from '../model/satellite';
 
@@ -31,17 +29,14 @@ export class RootComponent {
         //     .subscribe((satellite) => {
         //         console.log('satellite overhead', satellite);
         //     });
-        // this.subscriptions.push(
-        //     this.satelliteFetcher.satellites().subscribe((satellites) => {
-        //         const me = { x: 7974.81, y: -9.87, z: 9962.1 };
-        //         this.satelliteFetcher.closestFlyby(
-        //             satellites[0],
-        //             me,
-        //             new Date(),
-        //             new Date(new Date().getTime() + 2 * 24 * 60 * 60 * 1000),
-        //         ).subscribe(() => {});
-        //     }),
-        // );
+        this.subscriptions.push(
+            this.satelliteFetcher.satellites().subscribe((satellites) => {
+                const me = { x: 7974.81, y: -9.87, z: 9962.1 };
+                satellites[0].closestObservation(
+                    new GeographicCoords(51.50786, -0.063964),
+                );
+            }),
+        );
     }
 
     private ngOnDestroy() {

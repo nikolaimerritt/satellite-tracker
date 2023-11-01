@@ -1,5 +1,5 @@
-import { geodeticToEcf } from "satellite.js";
-import { CentredCartesianCoords } from "./centred-cartesian-coords";
+import { geodeticToEcf } from 'satellite.js';
+import { CentredCartesianCoords } from './centred-cartesian-coords';
 
 export class GeographicCoords {
     public constructor(
