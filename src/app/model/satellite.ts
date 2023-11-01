@@ -64,47 +64,47 @@ export class Satellite {
         );
     }
 
-    private cartesianCoordsAt(time: Date): CentredCartesianCoords | undefined {
-        if (!this.trajectory.isInRange(time)) return undefined;
+    // public coordsAt(time: Date): CentredCartesianCoords | undefined {
+    //     if (!this.trajectory.isInRange(time)) return undefined;
 
-        const eciCoords = propagate(
-            twoline2satrec(
-                this.trajectory.twoLineElement.line1,
-                this.trajectory.twoLineElement.line2,
-            ),
-            time,
-        );
-        if (typeof eciCoords.position === 'boolean') return undefined;
-        const coords = eciToEcf(eciCoords.position, gstime(time));
-        return new CentredCartesianCoords(coords.x, coords.y, coords.z);
-    }
+    //     const eciCoords = propagate(
+    //         twoline2satrec(
+    //             this.trajectory.twoLineElement.line1,
+    //             this.trajectory.twoLineElement.line2,
+    //         ),
+    //         time,
+    //     );
+    //     if (typeof eciCoords.position === 'boolean') return undefined;
+    //     const coords = eciToEcf(eciCoords.position, gstime(time));
+    //     return new CentredCartesianCoords(coords.x, coords.y, coords.z);
+    // }
 
-    public closestObservation(
-        observer: GeographicCoords,
-    ): Observation | undefined {
-        const normalisedObserver = observer.toCentredCartesian().normalised();
-        const startTime = this.trajectory.start.getTime();
-        const endTime = startTime + 2 * 24 * 60 * 60_000;
-        const distFromObserver = (timestamp: number) =>
-            this.cartesianCoordsAt(new Date(timestamp))
-                ?.normalised()
-                ?.squaredDistance(normalisedObserver) ?? NaN;
+    // public closestObservation(
+    //     observer: GeographicCoords,
+    // ): Observation | undefined {
+    //     const normalisedObserver = observer.toCentredCartesian().normalised();
+    //     const startTime = this.trajectory.start.getTime();
+    //     const endTime = startTime + 2 * 24 * 60 * 60_000;
+    //     const distFromObserver = (timestamp: number) =>
+    //         this.coordsAt(new Date(timestamp))
+    //             ?.normalised()
+    //             ?.squaredDistance(normalisedObserver) ?? NaN;
 
-        const closestTime = new Date(
-            Satellite.minimiseFn(
-                distFromObserver,
-                startTime,
-                endTime,
-                [1000, 100],
-            ),
-        );
-        const closestCoords = this.coordsAt(closestTime);
-        if (closestCoords === undefined) return undefined;
-        return {
-            coords: closestCoords,
-            time: closestTime,
-        };
-    }
+    //     const closestTime = new Date(
+    //         Satellite.minimiseFn(
+    //             distFromObserver,
+    //             startTime,
+    //             endTime,
+    //             [1000, 100],
+    //         ),
+    //     );
+    //     const closestCoords = this.coordsAt(closestTime);
+    //     if (closestCoords === undefined) return undefined;
+    //     return {
+    //         coords: closestCoords,
+    //         time: closestTime,
+    //     };
+    // }
 
     private static minimiseFn(
         fn: (x: number) => number,

@@ -3,6 +3,18 @@
         {
             "name": "ISS Zarya",
             "id": 25544
+        },
+        {
+            "name": "Norsat 1",
+            "id": 42826
+        },
+        {
+            "name": "Navstar 63",
+            "id": 34661
+        },
+        {
+            "name": "Neudose",
+            "id": 56315
         }
     ]
 }
