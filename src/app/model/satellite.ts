@@ -1,14 +1,5 @@
-import {
-    propagate,
-    twoline2satrec,
-    eciToGeodetic,
-    gstime,
-    degreesLat,
-    degreesLong,
-    eciToEcf,
-} from 'satellite.js';
-import { GeographicCoords } from './geographic-coords';
-import { CentredCartesianCoords } from './centred-cartesian-coords';
+import { propagate, twoline2satrec, gstime, eciToEcf } from 'satellite.js';
+import { CentredCartesianCoords as EarthCentredCoords } from './centred-cartesian-coords';
 
 export class Trajectory {
     public constructor(
@@ -34,7 +25,7 @@ export class TwoLineElement {
 }
 
 export interface Observation {
-    coords: GeographicCoords;
+    coords: EarthCentredCoords;
     time: Date;
 }
 
@@ -45,7 +36,7 @@ export class Satellite {
         private readonly trajectory: Trajectory,
     ) {}
 
-    public coordsAt(time: Date): GeographicCoords | undefined {
+    public coordsAt(time: Date): EarthCentredCoords | undefined {
         if (!this.trajectory.isInRange(time)) return undefined;
 
         const eciCoords = propagate(
@@ -56,55 +47,36 @@ export class Satellite {
             time,
         );
         if (typeof eciCoords.position === 'boolean') return undefined;
-        const geodeticCoords = eciToGeodetic(eciCoords.position, gstime(time));
-        return new GeographicCoords(
-            degreesLat(geodeticCoords.latitude),
-            degreesLong(geodeticCoords.longitude),
-            geodeticCoords.height,
-        );
+        const coords = eciToEcf(eciCoords.position, gstime(time));
+        return new EarthCentredCoords(coords.x, coords.y, coords.z);
     }
 
-    // public coordsAt(time: Date): CentredCartesianCoords | undefined {
-    //     if (!this.trajectory.isInRange(time)) return undefined;
+    public closestObservation(
+        observer: EarthCentredCoords,
+    ): Observation | undefined {
+        const normalisedObserver = observer.normalised();
+        const startTime = this.trajectory.start.getTime();
+        const endTime = startTime + 2 * 24 * 60 * 60_000;
+        const distFromObserver = (timestamp: number) =>
+            this.coordsAt(new Date(timestamp))
+                ?.normalised()
+                ?.squaredDistance(normalisedObserver) ?? NaN;
 
-    //     const eciCoords = propagate(
-    //         twoline2satrec(
-    //             this.trajectory.twoLineElement.line1,
-    //             this.trajectory.twoLineElement.line2,
-    //         ),
-    //         time,
-    //     );
-    //     if (typeof eciCoords.position === 'boolean') return undefined;
-    //     const coords = eciToEcf(eciCoords.position, gstime(time));
-    //     return new CentredCartesianCoords(coords.x, coords.y, coords.z);
-    // }
-
-    // public closestObservation(
-    //     observer: GeographicCoords,
-    // ): Observation | undefined {
-    //     const normalisedObserver = observer.toCentredCartesian().normalised();
-    //     const startTime = this.trajectory.start.getTime();
-    //     const endTime = startTime + 2 * 24 * 60 * 60_000;
-    //     const distFromObserver = (timestamp: number) =>
-    //         this.coordsAt(new Date(timestamp))
-    //             ?.normalised()
-    //             ?.squaredDistance(normalisedObserver) ?? NaN;
-
-    //     const closestTime = new Date(
-    //         Satellite.minimiseFn(
-    //             distFromObserver,
-    //             startTime,
-    //             endTime,
-    //             [1000, 100],
-    //         ),
-    //     );
-    //     const closestCoords = this.coordsAt(closestTime);
-    //     if (closestCoords === undefined) return undefined;
-    //     return {
-    //         coords: closestCoords,
-    //         time: closestTime,
-    //     };
-    // }
+        const closestTime = new Date(
+            Satellite.minimiseFn(
+                distFromObserver,
+                startTime,
+                endTime,
+                [1000, 100],
+            ),
+        );
+        const closestCoords = this.coordsAt(closestTime);
+        if (closestCoords === undefined) return undefined;
+        return {
+            coords: closestCoords,
+            time: closestTime,
+        };
+    }
 
     private static minimiseFn(
         fn: (x: number) => number,

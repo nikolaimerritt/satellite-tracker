@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { Subscription, interval, map } from 'rxjs';
 import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
-import { GeographicCoords } from '../model/geographic-coords';
 import { Satellite } from '../model/satellite';
 import { ecfToEci, eciToGeodetic, geodeticToEcf, gstime } from 'satellite.js';
 import { CentredCartesianCoords } from '../model/centred-cartesian-coords';
