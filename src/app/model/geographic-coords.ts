@@ -1,12 +1,16 @@
+import { geodeticToEcf } from "satellite.js";
+import { CentredCartesianCoords } from "./centred-cartesian-coords";
+
 export class GeographicCoords {
     public constructor(
         public readonly latitude: number,
         public readonly longitude: number,
-        public unit: Unit = 'Degrees',
+        public readonly height: number = GeographicCoords.radiusOfEarthKm,
+        public angleUnit: Unit = 'Degrees',
     ) {}
 
-    private readonly degreesToRadiansFactor = Math.PI / 180;
-    private readonly radiusOfEarthKm = 6_378.1;
+    private static readonly degreesToRadiansFactor = Math.PI / 180;
+    private static readonly radiusOfEarthKm = 6_378.1;
 
     public distanceKm(other: GeographicCoords): number {
         const thisRads = this.toRadians();
@@ -23,7 +27,7 @@ export class GeographicCoords {
 
         return (
             2 *
-            this.radiusOfEarthKm *
+            GeographicCoords.radiusOfEarthKm *
             Math.asin(
                 Math.sqrt(
                     sineSquareLatitudeDifference +
@@ -36,21 +40,28 @@ export class GeographicCoords {
     }
 
     public toDegrees(): GeographicCoords {
-        if (this.unit === 'Degrees') return this;
+        if (this.angleUnit === 'Degrees') return this;
         return new GeographicCoords(
-            this.latitude / this.degreesToRadiansFactor,
-            this.longitude / this.degreesToRadiansFactor,
+            this.latitude / GeographicCoords.degreesToRadiansFactor,
+            this.longitude / GeographicCoords.degreesToRadiansFactor,
+            this.height,
             'Degrees',
         );
     }
 
     public toRadians(): GeographicCoords {
-        if (this.unit === 'Radians') return this;
+        if (this.angleUnit === 'Radians') return this;
         return new GeographicCoords(
-            this.latitude * this.degreesToRadiansFactor,
-            this.longitude * this.degreesToRadiansFactor,
+            this.latitude * GeographicCoords.degreesToRadiansFactor,
+            this.longitude * GeographicCoords.degreesToRadiansFactor,
+            this.height,
             'Radians',
         );
+    }
+
+    public toCentredCartesian(): CentredCartesianCoords {
+        const centred = geodeticToEcf(this);
+        return new CentredCartesianCoords(centred.x, centred.y, centred.z);
     }
 }
 

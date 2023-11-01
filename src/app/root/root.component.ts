@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { Subscription, interval, map } from 'rxjs';
 import {
-    Satellite,
     SatelliteFetcherService,
-    SatelliteObservation,
 } from 'src/app/satellite-fetcher.service';
-import { GeographicCoords } from '../geographic-coords';
+import { GeographicCoords } from '../model/geographic-coords';
+import { Satellite } from '../model/satellite';
 
 @Component({
     selector: 'root',

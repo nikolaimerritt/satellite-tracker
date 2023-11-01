@@ -1,6 +1,6 @@
 import { Component, Input, ElementRef, ViewChild } from '@angular/core';
-import { Satellite, SatelliteObservation } from '../satellite-fetcher.service';
-import { GeographicCoords } from '../geographic-coords';
+import { GeographicCoords } from '../model/geographic-coords';
+import { Satellite } from '../model/satellite';
 
 interface ScreenCoords {
     x: number;
@@ -17,19 +17,19 @@ export class MapComponent {
     @Input() satellites!: Satellite[];
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
-        // const animationStart = new Date();
-        // const step = (msSinceAnimationStart: number) => {
-        //     const geographicCoords = satellite.path(
-        //         new Date(animationStart.getTime() + msSinceAnimationStart),
-        //     );
-        //     if (geographicCoords) {
-        //         const screenCoords = this.toScreenCoords(geographicCoords);
-        //         element.nativeElement.style.left = screenCoords.x + 'px';
-        //         element.nativeElement.style.top = screenCoords.y + 'px';
-        //     }
-        //     window.requestAnimationFrame(step);
-        // };
-        // window.requestAnimationFrame(step);
+        const animationStart = new Date();
+        const step = (msSinceAnimationStart: number) => {
+            const geographicCoords = satellite.coordsAt(
+                new Date(animationStart.getTime() + msSinceAnimationStart),
+            );
+            if (geographicCoords) {
+                const screenCoords = this.toScreenCoords(geographicCoords);
+                element.nativeElement.style.left = screenCoords.x + 'px';
+                element.nativeElement.style.top = screenCoords.y + 'px';
+            }
+            window.requestAnimationFrame(step);
+        };
+        window.requestAnimationFrame(step);
     }
 
     private toScreenCoords(coords: GeographicCoords): ScreenCoords {
@@ -66,6 +66,7 @@ export class MapComponent {
         };
         const geographicCoords = this.toGeographicCoords(screenCoords);
         for (const satellite of this.satellites) {
+            console.log("closest flyby", satellite.name, satellite.closestObservation(geographicCoords))
         }
     }
 }
