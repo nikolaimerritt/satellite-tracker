@@ -25,9 +25,6 @@ export class MapComponent {
     protected selectedSatellite?: Satellite;
     protected calculatingNextFlyby = false;
     protected flyby?: Flyby = undefined;
-    protected readonly flybyEndDay = new Date(
-        new Date().getTime() + TwoLineElement.accuracyMs,
-    ).toLocaleDateString('en-US', { weekday: 'long' });
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
         const animationStart = new Date();
@@ -74,7 +71,8 @@ export class MapComponent {
         this.selectedSatellite = satellite;
     }
 
-    protected onCalculateFlybyButtonClick() {
+    protected onCalculateFlybyButtonClick(click: MouseEvent) {
+        click.stopImmediatePropagation();
         if (this.selectedSatellite !== undefined) {
             this.calculatingNextFlyby = true;
         }

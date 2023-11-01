@@ -5,9 +5,9 @@
             disabled:
                 this.selectedSatellite === undefined || this.flyby !== undefined
         }"
-        (click)="this.calculatingNextFlyby = true"
+        (click)="this.onCalculateFlybyButtonClick($event)"
     >
-        Calculate nearest flyby up to {{ this.flybyEndDay }}
+        Calculate next closest flyby
     </span>
 
     <div *ngFor="let satellite of this.satellites">

@@ -1,7 +1,7 @@
 $background: rgba($color: silver, $alpha: 0.9);
 
 :host {
-    transform: translate(-50%, 50%);
+    transform: translate(-50%, -58%);
 }
 
 span {
@@ -22,6 +22,14 @@ span {
     height: 0px;
     width: 0px;
     border-width: 8px;
+    top: -1px;
     border-color: $background transparent transparent transparent;
     border-style: solid;
+}
+
+.dot {
+    border-radius: 50%;
+    background: red;
+    height: 8px;
+    width: 8px;
 }

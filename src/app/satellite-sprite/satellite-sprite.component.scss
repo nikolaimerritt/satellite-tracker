@@ -1,6 +1,12 @@
-$highlight: rgba($color: (#8ecae6), $alpha: 0.1);
+$highlight: rgba($color: (#6aee91), $alpha: 0.3);
 
-:host {
+@mixin highlighted {
+    background-color: $highlight;
+    border: 2px $highlight;
+    border-radius: 32px;
+}
+
+.container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -8,10 +14,12 @@ $highlight: rgba($color: (#8ecae6), $alpha: 0.1);
 
     cursor: pointer;
     &:hover {
-        background-color: $highlight;
-        border: 2px $highlight;
-        border-radius: 32px;
+        @include highlighted();
     }
+}
+
+.clicked {
+    @include highlighted();
 }
 
 img {

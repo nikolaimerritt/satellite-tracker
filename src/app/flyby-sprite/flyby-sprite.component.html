@@ -1,8 +1,9 @@
 <div style="display: flex; flex-direction: column; align-items: center">
     <div class="container">
-        <span> {{ this.flyby.satellite.name }} overhead at </span>
-        <span> {{ this.location() }} </span>
+        <span> {{ this.flyby.satellite.name }} nearest at </span>
         <span> {{ this.time() }} </span>
+        <span> {{ this.location() }} </span>
     </div>
     <div class="arrow"></div>
+    <div class="dot"></div>
 </div>
