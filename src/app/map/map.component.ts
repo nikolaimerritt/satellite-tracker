@@ -1,4 +1,10 @@
-import { Component, Input, ElementRef } from '@angular/core';
+import {
+    Component,
+    Input,
+    ElementRef,
+    Output,
+    EventEmitter,
+} from '@angular/core';
 import { Satellite } from '../model/satellite';
 import {
     EarthCentredCoords,
@@ -12,7 +18,9 @@ import {
 })
 export class MapComponent {
     constructor(private element: ElementRef) {}
+
     @Input() satellites!: Satellite[];
+    @Output() selectedSatelliteChange = new EventEmitter<Satellite>();
 
     public animateSatellite(satellite: Satellite, element: ElementRef) {
         const animationStart = new Date();
@@ -50,5 +58,9 @@ export class MapComponent {
                 satellite.closestObservation(centredCoords),
             );
         }
+    }
+
+    protected onSatelliteClick(satellite: Satellite) {
+        this.selectedSatelliteChange.emit(satellite);
     }
 }

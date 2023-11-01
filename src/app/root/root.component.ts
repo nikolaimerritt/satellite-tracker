@@ -8,11 +8,13 @@ import { EarthCentredCoords } from '../model/earth-centred-coords';
 @Component({
     selector: 'root',
     templateUrl: './root.component.html',
+    styleUrls: ['./root.component.scss'],
 })
 export class RootComponent {
     protected satellites: Satellite[] = [];
 
     private readonly subscriptions: Subscription[] = [];
+    protected selectedSatellite?: Satellite = undefined;
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 
@@ -44,5 +46,9 @@ export class RootComponent {
     private ngOnDestroy() {
         for (const subscription of this.subscriptions)
             subscription.unsubscribe();
+    }
+
+    private onSatelliteSelect(satellite: Satellite) {
+        this.selectedSatellite = satellite;
     }
 }

@@ -1,1 +1,13 @@
-<map [satellites]="this.satellites"></map>
+<div style="display: flex; flex-direction: column; align-items: center">
+    <h1>Satellite live map</h1>
+    <span
+        class="flyby-button"
+        [ngClass]="{ disabled: this.selectedSatellite === undefined }"
+    >
+        Calculate next flyby
+    </span>
+    <map
+        [satellites]="this.satellites"
+        (selectedSatelliteChange)="this.selectedSatellite = $event"
+    ></map>
+</div>

@@ -2,10 +2,11 @@
     <satellite-sprite
         [name]="this.satellite.name"
         (elementChange)="this.animateSatellite(satellite, $event)"
+        (click)="this.onSatelliteClick(satellite)"
     ></satellite-sprite>
 </div>
 <img
-    src="assets/mercator.jpg"
-    style="height: 100vh"
+    class="map-background"
+    src="assets/mercator-2.jpg"
     (click)="this.onClick($event)"
 />
