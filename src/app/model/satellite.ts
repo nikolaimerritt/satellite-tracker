@@ -91,7 +91,12 @@ export class Satellite {
                 ?.squaredDistance(normalisedObserver) ?? NaN;
 
         const closestTime = new Date(
-            Satellite.minimiseFn(distFromObserver, startTime, endTime, [1000, 100]),
+            Satellite.minimiseFn(
+                distFromObserver,
+                startTime,
+                endTime,
+                [1000, 100],
+            ),
         );
         const closestCoords = this.coordsAt(closestTime);
         if (closestCoords === undefined) return undefined;
@@ -120,7 +125,12 @@ export class Satellite {
             const diffBeforeMin = sampleWindow[2] - sampleWindow[0];
             const diffAfterMin = sampleWindow[3] - sampleWindow[1];
             if (diffBeforeMin <= 0 && diffAfterMin >= 0) {
-                const xInflection = Satellite.minimiseFn(fn, xStart + (i + 1) * deltaX, xStart + (i + 2) * deltaX, sampleSchedules.slice(1,))
+                const xInflection = Satellite.minimiseFn(
+                    fn,
+                    xStart + (i + 1) * deltaX,
+                    xStart + (i + 2) * deltaX,
+                    sampleSchedules.slice(1),
+                );
                 const inflectionPoint = fn(xInflection);
                 if (inflectionPoint < lowestF) {
                     lowestF = inflectionPoint;

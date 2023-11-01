@@ -3,6 +3,8 @@ import { Subscription, interval, map } from 'rxjs';
 import { SatelliteFetcherService } from 'src/app/satellite-fetcher.service';
 import { GeographicCoords } from '../model/geographic-coords';
 import { Satellite } from '../model/satellite';
+import { ecfToEci, eciToGeodetic, geodeticToEcf, gstime } from 'satellite.js';
+import { CentredCartesianCoords } from '../model/centred-cartesian-coords';
 
 @Component({
     selector: 'root',
@@ -24,11 +26,6 @@ export class RootComponent {
                 ),
         );
 
-        // this.satelliteFetcher
-        //     .closestFlybys(new GeographicCoords(51.507, -0.064), new Date())
-        //     .subscribe((satellite) => {
-        //         console.log('satellite overhead', satellite);
-        //     });
         this.subscriptions.push(
             this.satelliteFetcher.satellites().subscribe((satellites) => {
                 const me = { x: 7974.81, y: -9.87, z: 9962.1 };
@@ -38,6 +35,11 @@ export class RootComponent {
                 console.log("root: closest", closest);
             }),
         );
+
+        // const g = new GeographicCoords(51.50786, -0.063964).toRadians();
+        // const now = new Date();
+        // const g2 = eciToGeodetic(ecfToEci(geodeticToEcf(g), gstime(now)), gstime(now));
+        // console.log("conversion", g, new GeographicCoords(g2.latitude, g2.longitude, g.height, 'Radians'));
     }
 
     private ngOnDestroy() {
