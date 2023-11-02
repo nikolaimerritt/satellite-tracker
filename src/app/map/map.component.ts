@@ -1,12 +1,5 @@
-import {
-    Component,
-    Input,
-    ElementRef,
-    Output,
-    EventEmitter,
-    ViewChild,
-} from '@angular/core';
-import { Flyby, Satellite, TwoLineElement } from '../model/satellite';
+import { Component, Input, ElementRef } from '@angular/core';
+import { Flyby, Satellite } from '../model/satellite';
 import {
     EarthCentredCoords,
     MercatorProjection,
@@ -26,14 +19,12 @@ export class MapComponent {
     protected calculatingNextFlyby = false;
     protected flyby?: Flyby = undefined;
 
-    public animateSatellite(satellite: Satellite, element: ElementRef) {
+    protected animateSatellite(element: ElementRef, satellite: Satellite) {
         const animationStart = new Date();
-        const step = (msSinceAnimationStart: number) => {
+        const step = (timeSinceStart: number) => {
             const mercator = satellite
-                .coordsAt(
-                    new Date(animationStart.getTime() + msSinceAnimationStart),
-                )
-                ?.mercatorProjection();
+                .coordsAt(new Date(animationStart.getTime() + timeSinceStart))
+                ?.toMercatorProjection();
             if (mercator) {
                 this.moveTo(element, mercator);
             }
@@ -42,19 +33,25 @@ export class MapComponent {
         window.requestAnimationFrame(step);
     }
 
-    protected onMapClick(event: MouseEvent) {
+    protected animateFlybySprite(element: ElementRef, flyby: Flyby) {
+        const mercator = flyby.coords.toMercatorProjection();
+        this.moveTo(element, mercator);
+    }
+
+    protected onMapClick(click: MouseEvent) {
         if (this.selectedSatellite !== undefined && this.calculatingNextFlyby) {
             const mapWidth = this.element.nativeElement.offsetWidth;
             const mapHeight = this.element.nativeElement.offsetHeight;
 
-            const mercator: MercatorProjection = {
-                x: event.offsetX / mapWidth,
-                y: event.offsetY / mapHeight,
+            const clickAsMercator: MercatorProjection = {
+                x: click.offsetX / mapWidth,
+                y: click.offsetY / mapHeight,
             };
-            const centredCoords =
-                EarthCentredCoords.fromMercatorProjection(mercator);
-            const flyby =
-                this.selectedSatellite.closestObservation(centredCoords);
+            const clickAsEarthCentredCoords =
+                EarthCentredCoords.fromMercatorProjection(clickAsMercator);
+            const flyby = this.selectedSatellite.closestFlyby(
+                clickAsEarthCentredCoords,
+            );
             if (flyby) {
                 this.flyby = flyby;
                 this.selectedSatellite = undefined;
@@ -65,7 +62,7 @@ export class MapComponent {
         }
     }
 
-    protected onSatelliteClick(satellite: Satellite) {
+    protected selectSatellite(satellite: Satellite) {
         this.calculatingNextFlyby = false;
         this.flyby = undefined;
         this.selectedSatellite = satellite;
@@ -86,12 +83,7 @@ export class MapComponent {
         element.nativeElement.style.top = mercator.y * mapHeight + 'px';
     }
 
-    protected moveFlybySprite(element: ElementRef, flyby: Flyby) {
-        const mercator = flyby.coords.mercatorProjection();
-        this.moveTo(element, mercator);
-    }
-
-    protected cursor() {
+    protected cursor(): string {
         if (this.calculatingNextFlyby) return 'crosshair';
         return 'default';
     }

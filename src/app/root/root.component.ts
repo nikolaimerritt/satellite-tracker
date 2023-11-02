@@ -14,8 +14,6 @@ export class RootComponent {
     protected satellites: Satellite[] = [];
 
     private readonly subscriptions: Subscription[] = [];
-    protected selectedSatellite?: Satellite = undefined;
-    protected calculatingNextFlyby = false;
 
     constructor(private satelliteFetcher: SatelliteFetcherService) {}
 

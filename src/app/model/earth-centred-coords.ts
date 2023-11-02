@@ -1,6 +1,4 @@
-import { ecfToEci, eciToGeodetic, geodeticToEcf, gstime } from 'satellite.js';
-
-export type Unit = 'Kilometers' | 'Normalised';
+import { ecfToEci, eciToGeodetic, geodeticToEcf } from 'satellite.js';
 
 export interface MercatorProjection {
     x: number;
@@ -20,7 +18,9 @@ export class EarthCentredCoords {
     ) {}
     private static readonly radiusOfEarthKm = 6_378.1;
 
-    public static fromMercatorProjection(mercator: MercatorProjection) {
+    public static fromMercatorProjection(
+        mercator: MercatorProjection,
+    ): EarthCentredCoords {
         const longitude = 2 * Math.PI * mercator.x - Math.PI;
         const mercatorFactor = (0.5 - mercator.y) * 2 * Math.PI;
         const latitude =
@@ -32,6 +32,24 @@ export class EarthCentredCoords {
         };
         const ecf = geodeticToEcf(geodetic);
         return new EarthCentredCoords(ecf.x, ecf.y, ecf.z);
+    }
+
+    public toMercatorProjection(): MercatorProjection {
+        const geodetic = eciToGeodetic(ecfToEci(this, 0), 0);
+        const x = (geodetic.longitude + Math.PI) / (2 * Math.PI);
+        const mercatorFactor = Math.log(
+            Math.tan(Math.PI / 4 + geodetic.latitude / 2),
+        );
+        const y = 0.5 - mercatorFactor / (2 * Math.PI);
+        return { x, y };
+    }
+
+    public toSpherical(): SphericalCoords {
+        const geodetic = eciToGeodetic(ecfToEci(this, 0), 0);
+        return {
+            latitude: (geodetic.latitude * 180) / Math.PI,
+            longitude: (geodetic.longitude * 180) / Math.PI,
+        };
     }
 
     public squaredMagnitude(): number {
@@ -53,23 +71,5 @@ export class EarthCentredCoords {
             this.y / magnitude,
             this.z / magnitude,
         );
-    }
-
-    public toSpherical(): SphericalCoords {
-        const geodetic = eciToGeodetic(ecfToEci(this, 0), 0);
-        return {
-            latitude: (geodetic.latitude * 180) / Math.PI,
-            longitude: (geodetic.longitude * 180) / Math.PI,
-        };
-    }
-
-    public mercatorProjection(): MercatorProjection {
-        const geodetic = eciToGeodetic(ecfToEci(this, 0), 0);
-        const x = (geodetic.longitude + Math.PI) / (2 * Math.PI);
-        const mercatorFactor = Math.log(
-            Math.tan(Math.PI / 4 + geodetic.latitude / 2),
-        );
-        const y = 0.5 - mercatorFactor / (2 * Math.PI);
-        return { x, y };
     }
 }

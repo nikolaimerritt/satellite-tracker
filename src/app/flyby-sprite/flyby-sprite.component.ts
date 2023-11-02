@@ -18,7 +18,7 @@ export class FlybySpriteComponent {
 
     public constructor(private element: ElementRef) {}
 
-    private readonly decimalPlaces = 2;
+    private readonly angleDecimalPlaces = 2;
     private readonly timeFormat: Intl.DateTimeFormatOptions = {
         weekday: 'long',
         hour: 'numeric',
@@ -33,8 +33,8 @@ export class FlybySpriteComponent {
     protected location(): string {
         const spherical = this.flyby.coords.toSpherical();
         return `${spherical.latitude.toFixed(
-            this.decimalPlaces,
-        )}° N ${spherical.longitude.toFixed(this.decimalPlaces)}° E`;
+            this.angleDecimalPlaces,
+        )}° N ${spherical.longitude.toFixed(this.angleDecimalPlaces)}° E`;
     }
 
     protected time(): string {

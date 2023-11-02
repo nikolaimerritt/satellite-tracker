@@ -1,4 +1,4 @@
-<div style="display: flex; flex-direction: column; align-items: center">
+<div class="column-container">
     <span
         class="flyby-button"
         [ngClass]="{
@@ -13,8 +13,8 @@
     <div *ngFor="let satellite of this.satellites">
         <satellite-sprite
             [name]="this.satellite.name"
-            (elementChange)="this.animateSatellite(satellite, $event)"
-            (click)="this.onSatelliteClick(satellite)"
+            (elementChange)="this.animateSatellite($event, satellite)"
+            (click)="this.selectSatellite(satellite)"
         ></satellite-sprite>
     </div>
     <img
@@ -27,7 +27,7 @@
         *ngIf="this.flyby !== undefined"
         [id]="'flyby-sprite'"
         [flyby]="this.flyby"
-        (elementChange)="this.moveFlybySprite($event, this.flyby)"
+        (elementChange)="this.animateFlybySprite($event, this.flyby)"
     >
     </flyby-sprite>
 </div>

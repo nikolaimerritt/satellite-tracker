@@ -1,18 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, forkJoin, mergeMap, EMPTY, of, filter } from 'rxjs';
-import {
-    twoline2satrec,
-    eciToGeodetic,
-    propagate,
-    gstime,
-    degreesLong,
-    degreesLat,
-    EciVec3,
-    eciToEcf,
-    EcfVec3,
-} from 'satellite.js';
-import { ConfigService } from './config.service';
+import { Observable, map, forkJoin } from 'rxjs';
+import { ConfigService, SatelliteConfig } from './config.service';
 import { Satellite, Trajectory, TwoLineElement } from './model/satellite';
 
 @Injectable({
@@ -28,7 +17,7 @@ export class SatelliteFetcherService {
 
     public satellites(): Observable<Satellite[]> {
         return forkJoin(
-            this.config.satellites.map((config) =>
+            this.config.satellites.map((config: SatelliteConfig) =>
                 this.fetchTrajectory(config.id).pipe(
                     map(
                         (trajectory: Trajectory) =>
